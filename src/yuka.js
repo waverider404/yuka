@@ -1,3 +1,4 @@
+export { Config } from './core/Config.js';
 export { EntityManager } from './core/EntityManager.js';
 export { GameEntity } from './core/GameEntity.js';
 export { Logger } from './core/Logger.js';
@@ -47,3 +48,4 @@ export { Matrix4 } from './math/Matrix4.js';
 export { Quaternion } from './math/Quaternion.js';
 export { Ray } from './math/Ray.js';
 export { Vector3 } from './math/Vector3.js';
+export { PathPlanner } from './graph/PathPlanner.js';

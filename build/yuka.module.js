@@ -2,6 +2,28 @@
  * @author Mugen87 / https://github.com/Mugen87
  */
 
+class Config {
+
+	static setWorkerPath( path ) {
+
+		currentWorkerPath = path;
+
+	}
+
+	static getWorkerPath() {
+
+		return currentWorkerPath;
+
+	}
+
+}
+
+let currentWorkerPath = null;
+
+/**
+ * @author Mugen87 / https://github.com/Mugen87
+ */
+
 class Telegram {
 
 	constructor( sender, receiver, message, delay, data ) {
@@ -4626,4 +4648,43 @@ class Think extends Goal {
 
 }
 
-export { EntityManager, GameEntity, Logger, MessageDispatcher, MovingEntity, Telegram, Time, Node, Edge, Graph, PriorityQueue, NavNode, NavEdge, DFS, BFS, Dijkstra, AStar, Path, SteeringBehavior, SteeringManager, Vehicle, ArriveBehavior, EvadeBehavior, FleeBehavior, FollowPathBehavior, InterposeBehavior, ObstacleAvoidanceBehavior, PursuitBehavior, SeekBehavior, WanderBehavior, RectangularTriggerRegion, SphericalTriggerRegion, TriggerRegion, Trigger, State, StateMachine, Goal, CompositeGoal, GoalEvaluator, Think, AABB, BoundingSphere, _Math as Math, Matrix3, Matrix4, Quaternion, Ray, Vector3, HeuristicPolicyEuclid, HeuristicPolicyEuclidSquared, HeuristicPolicyManhatten, HeuristicPolicyDijkstra };
+/**
+ * @author Mugen87 / https://github.com/Mugen87
+ */
+
+class PathPlanner {
+
+	constructor() {
+
+		const path = Config.getWorkerPath();
+
+		this.worker = new Worker( path );
+
+		this.worker.onmessage = function ( event ) {
+
+			const buffer = event.data.buffer;
+			const f32Array = new Float32Array( buffer );
+
+			console.log( f32Array );
+
+		};
+
+		this.worker.postMessage( { op: 'init' } );
+
+	}
+
+	run() {
+
+		this.worker.postMessage( { op: 'search' } );
+
+	}
+
+	terminate() {
+
+		this.worker.terminate();
+
+	}
+
+}
+
+export { Config, EntityManager, GameEntity, Logger, MessageDispatcher, MovingEntity, Telegram, Time, Node, Edge, Graph, PriorityQueue, NavNode, NavEdge, DFS, BFS, Dijkstra, AStar, Path, SteeringBehavior, SteeringManager, Vehicle, ArriveBehavior, EvadeBehavior, FleeBehavior, FollowPathBehavior, InterposeBehavior, ObstacleAvoidanceBehavior, PursuitBehavior, SeekBehavior, WanderBehavior, RectangularTriggerRegion, SphericalTriggerRegion, TriggerRegion, Trigger, State, StateMachine, Goal, CompositeGoal, GoalEvaluator, Think, AABB, BoundingSphere, _Math as Math, Matrix3, Matrix4, Quaternion, Ray, Vector3, PathPlanner, HeuristicPolicyEuclid, HeuristicPolicyEuclidSquared, HeuristicPolicyManhatten, HeuristicPolicyDijkstra };
