@@ -39,9 +39,11 @@
 
 		const pathPlanner = new YUKA.PathPlanner();
 
-		pathPlanner.run();
-		pathPlanner.run();
-		pathPlanner.run();
+		pathPlanner.findPath().then( ( float32Array ) => {
+
+			console.log( float32Array );
+
+		} );
 
 	</script>
 
