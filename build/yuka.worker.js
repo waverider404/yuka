@@ -21,7 +21,7 @@
 			const index = node.index;
 
 			this._nodes.set( index, node );
-			this._edges.set( index, new Set() );
+			this._edges.set( index, new Array() );
 
 			return this;
 
@@ -32,7 +32,7 @@
 			let edges;
 
 			edges = this._edges.get( edge.from );
-			edges.add( edge );
+			edges.push( edge );
 
 			if ( this.digraph === false ) {
 
@@ -42,7 +42,7 @@
 				oppositeEdge.to = edge.from;
 
 				edges = this._edges.get( edge.to );
-				edges.add( oppositeEdge );
+				edges.push( oppositeEdge );
 
 			}
 
@@ -52,7 +52,7 @@
 
 		getNode( index ) {
 
-			return this._nodes.get( index );
+			return this._nodes.get( index ) || null;
 
 		}
 
@@ -62,7 +62,9 @@
 
 				const edges = this._edges.get( from );
 
-				for ( let edge of edges ) {
+				for ( let i = 0, l = edges.length; i < l; i ++ ) {
+
+					const edge = edges[ i ];
 
 					if ( edge.to === to ) {
 
@@ -74,7 +76,7 @@
 
 			}
 
-			return undefined;
+			return null;
 
 		}
 
@@ -82,6 +84,8 @@
 
 			result.length = 0;
 			result.push( ...this._nodes.values() );
+
+			return this;
 
 		}
 
@@ -96,6 +100,8 @@
 
 			}
 
+			return this;
+
 		}
 
 		getNodeCount() {
@@ -108,9 +114,9 @@
 
 			let count = 0;
 
-			for ( let edges of this._edges.values() ) {
+			for ( const edges of this._edges.values() ) {
 
-				count += edges.size;
+				count += edges.length;
 
 			}
 
@@ -128,15 +134,19 @@
 
 				const edges = this._edges.get( node.index );
 
-				for ( let edge of edges ) {
+				for ( const edge of edges ) {
 
 					const edgesOfNeighbor = this._edges.get( edge.to );
 
-					for ( let edgeNeighbor of edgesOfNeighbor ) {
+					for ( let i = ( edgesOfNeighbor.length - 1 ); i >= 0; i -- ) {
+
+						const edgeNeighbor = edgesOfNeighbor[ i ];
 
 						if ( edgeNeighbor.to === node.index ) {
 
-							edgesOfNeighbor.delete( edgeNeighbor );
+							const index = edgesOfNeighbor.indexOf( edgeNeighbor );
+							edgesOfNeighbor.splice( index, 1 );
+
 							break;
 
 						}
@@ -149,13 +159,16 @@
 
 				// if the graph is directed, remove the edges the slow way
 
-				for ( let edges of this._edges.values() ) {
+				for ( const edges of this._edges.values() ) {
 
-					for ( let edge of edges ) {
+					for ( let i = ( edges.length - 1 ); i >= 0; i -- ) {
+
+						const edge = edges[ i ];
 
 						if ( ! this.hasNode( edge.to ) || ! this.hasNode( edge.from ) ) {
 
-							edges.delete( edge );
+							const index = edges.indexOf( edge );
+							edges.splice( index, 1 );
 
 						}
 
@@ -178,20 +191,29 @@
 			// delete the edge from the node's edge list
 
 			const edges = this._edges.get( edge.from );
-			edges.delete( edge );
 
-			// if the graph is not directed, delete the edge connecting the node in the opposite direction
+			if ( edges !== undefined ) {
 
-			if ( this.digraph === false ) {
+				const index = edges.indexOf( edge );
+				edges.splice( index, 1 );
 
-				const edges = this._edges.get( edge.to );
+				// if the graph is not directed, delete the edge connecting the node in the opposite direction
 
-				for ( let e of edges ) {
+				if ( this.digraph === false ) {
 
-					if ( e.to === edge.from ) {
+					const edges = this._edges.get( edge.to );
 
-						edges.delete( e );
-						break;
+					for ( let i = 0, l = edges.length; i < l; i ++ ) {
+
+						const e = edges[ i ];
+
+						if ( e.to === edge.from ) {
+
+							const index = edges.indexOf( e );
+							edges.splice( index, 1 );
+							break;
+
+						}
 
 					}
 
@@ -215,9 +237,11 @@
 
 				const edges = this._edges.get( from );
 
-				for ( let e of edges ) {
+				for ( let i = 0, l = edges.length; i < l; i ++ ) {
 
-					if ( e.to === to ) {
+					const edge = edges[ i ];
+
+					if ( edge.to === to ) {
 
 						return true;
 

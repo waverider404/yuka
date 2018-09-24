@@ -62,4 +62,5 @@ export { RectangularTriggerRegion } from './trigger/regions/RectangularTriggerRe
 export { SphericalTriggerRegion } from './trigger/regions/SphericalTriggerRegion.js';
 export { TriggerRegion } from './trigger/TriggerRegion.js';
 export { Trigger } from './trigger/Trigger.js';
+export { PathPlanner } from './graph/PathPlanner.js';
 export * from './constants.js';

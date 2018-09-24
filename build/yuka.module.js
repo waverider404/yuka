@@ -7214,4 +7214,103 @@ class Trigger {
 
 }
 
-export { EntityManager, GameEntity, Logger, MessageDispatcher, MovingEntity, Regulator, Time, Telegram, State, StateMachine, CompositeGoal, Goal, GoalEvaluator, Think, Edge, Graph, Node, PriorityQueue, AStar, BFS, DFS, Dijkstra, AABB, BoundingSphere, LineSegment, _Math as Math, Matrix3, Matrix4, Plane, Quaternion, Ray, Vector3, NavEdge, NavNode, GraphUtils, Corridor, HalfEdge, NavMesh, NavMeshLoader, Polygon, Cell, CellSpacePartitioning, Path, Smoother, SteeringBehavior, SteeringManager, Vehicle, AlignmentBehavior, ArriveBehavior, CohesionBehavior, EvadeBehavior, FleeBehavior, FollowPathBehavior, InterposeBehavior, ObstacleAvoidanceBehavior, PursuitBehavior, SeekBehavior, SeparationBehavior, WanderBehavior, RectangularTriggerRegion, SphericalTriggerRegion, TriggerRegion, Trigger, HeuristicPolicyEuclid, HeuristicPolicyEuclidSquared, HeuristicPolicyManhatten, HeuristicPolicyDijkstra, WorldUp };
+/**
+ * @author Mugen87 / https://github.com/Mugen87
+ */
+
+class Config {
+
+	static setWorkerPath( path ) {
+
+		currentWorkerPath = path;
+
+	}
+
+	static getWorkerPath() {
+
+		return currentWorkerPath;
+
+	}
+
+}
+
+let currentWorkerPath = null;
+
+/**
+ * @author Mugen87 / https://github.com/Mugen87
+ */
+
+let nextId$1 = 0;
+
+class PathPlanner {
+
+	constructor() {
+
+		const path = Config.getWorkerPath();
+
+		this.activeRequest = new Map();
+
+		this.worker = new Worker( path );
+
+		this.worker.addEventListener( 'message', ( event ) => {
+
+			const requestId = event.data.requestId;
+			const activeRequest = this.activeRequest;
+
+			const callback = activeRequest.get( requestId );
+
+			const f32Array = new Float32Array( event.data.buffer );
+
+			callback( undefined, f32Array );
+
+			activeRequest.delete( requestId );
+
+		} );
+
+		this.worker.postMessage( { op: 'init' } );
+
+	}
+
+	run() {
+
+		this.worker.postMessage( { op: 'search' } );
+
+	}
+
+	terminate() {
+
+		this.worker.terminate();
+
+	}
+
+	findPath( from, to ) {
+
+		const promise = new Promise( ( resolve, reject ) => {
+
+			const requestId = nextId$1 ++;
+
+			this.activeRequest.set( requestId, ( error, result ) => {
+
+				if ( error ) {
+
+					reject( error );
+
+				} else {
+
+					resolve( result );
+
+				}
+
+			} );
+
+			this.worker.postMessage( { op: 'search', requestId: requestId } );
+
+		} );
+
+		return promise;
+
+	}
+
+}
+
+export { EntityManager, GameEntity, Logger, MessageDispatcher, MovingEntity, Regulator, Time, Telegram, State, StateMachine, CompositeGoal, Goal, GoalEvaluator, Think, Edge, Graph, Node, PriorityQueue, AStar, BFS, DFS, Dijkstra, AABB, BoundingSphere, LineSegment, _Math as Math, Matrix3, Matrix4, Plane, Quaternion, Ray, Vector3, NavEdge, NavNode, GraphUtils, Corridor, HalfEdge, NavMesh, NavMeshLoader, Polygon, Cell, CellSpacePartitioning, Path, Smoother, SteeringBehavior, SteeringManager, Vehicle, AlignmentBehavior, ArriveBehavior, CohesionBehavior, EvadeBehavior, FleeBehavior, FollowPathBehavior, InterposeBehavior, ObstacleAvoidanceBehavior, PursuitBehavior, SeekBehavior, SeparationBehavior, WanderBehavior, RectangularTriggerRegion, SphericalTriggerRegion, TriggerRegion, Trigger, PathPlanner, HeuristicPolicyEuclid, HeuristicPolicyEuclidSquared, HeuristicPolicyManhatten, HeuristicPolicyDijkstra, WorldUp };
