@@ -1,6 +1,5 @@
 /**
  * @author Mugen87 / https://github.com/Mugen87
- *
  */
 
 const expect = require( 'chai' ).expect;
@@ -21,8 +20,8 @@ describe( 'AABB', function () {
 		it( 'should create an object with correct default values', function () {
 
 			const aabb = new AABB();
-			expect( aabb.min ).to.deep.equal( zero3 );
-			expect( aabb.max ).to.deep.equal( zero3 );
+			expect( aabb.min ).to.deep.equal( new Vector3( Infinity, Infinity, Infinity ) );
+			expect( aabb.max ).to.deep.equal( new Vector3( - Infinity, - Infinity, - Infinity ) );
 
 		} );
 
@@ -111,7 +110,7 @@ describe( 'AABB', function () {
 			const aabb = new AABB( zero3, one3 );
 			const point = new Vector3( 0.5, 0.5, 0.5 );
 
-			expect( aabb.containsPoint( point ) ).to.equal( true );
+			expect( aabb.containsPoint( point ) ).to.be.true;
 
 		} );
 
@@ -120,7 +119,7 @@ describe( 'AABB', function () {
 			const aabb = new AABB( zero3, one3 );
 			const point = new Vector3( 0.5, 0.5, 1 );
 
-			expect( aabb.containsPoint( point ) ).to.equal( true );
+			expect( aabb.containsPoint( point ) ).to.be.true;
 
 		} );
 
@@ -129,7 +128,58 @@ describe( 'AABB', function () {
 			const aabb = new AABB( zero3, one3 );
 			const point = new Vector3( 0.5, 0.5, 2 );
 
-			expect( aabb.containsPoint( point ) ).to.equal( false );
+			expect( aabb.containsPoint( point ) ).to.be.false;
+
+		} );
+
+	} );
+
+	describe( '#expand()', function () {
+
+		it( 'should expand the AABB by the given point', function () {
+
+			const aabb = new AABB();
+			const point1 = new Vector3( 1, 1, 1 );
+			const point2 = new Vector3( - 2, 2, - 2 );
+
+			aabb.expand( point1 );
+			expect( aabb.min ).to.deep.equal( new Vector3( 1, 1, 1 ) );
+			expect( aabb.max ).to.deep.equal( new Vector3( 1, 1, 1 ) );
+
+			aabb.expand( point2 );
+			expect( aabb.min ).to.deep.equal( new Vector3( - 2, 1, - 2 ) );
+			expect( aabb.max ).to.deep.equal( new Vector3( 1, 2, 1 ) );
+
+		} );
+
+	} );
+
+	describe( '#intersectsAABB()', function () {
+
+		it( 'should return true if the given AABB intersects this AABB', function () {
+
+			const aabb1 = new AABB( zero3, one3 );
+			const aabb2 = new AABB( new Vector3( 0.5, 0.5, 0.5 ), two3 );
+
+			expect( aabb1.intersectsAABB( aabb2 ) ).to.be.true;
+
+		} );
+
+		it( 'should return true if the given AABB touches this AABB', function () {
+
+			const aabb1 = new AABB( zero3, one3 );
+			const aabb2 = new AABB( one3, two3 );
+
+			expect( aabb1.intersectsAABB( aabb2 ) ).to.be.true;
+
+		} );
+
+		it( 'should return false if the given AABB does not intersect this AABB', function () {
+
+			const aabb1 = new AABB( zero3, one3 );
+			const aabb2 = new AABB( two3, new Vector3( 3, 3, 3 ) );
+
+			expect( aabb1.intersectsAABB( aabb2 ) ).to.be.false;
 
 		} );
 
@@ -142,7 +192,7 @@ describe( 'AABB', function () {
 			const aabb = new AABB( zero3, one3 );
 			const sphere = new BoundingSphere( one3, 1 );
 
-			expect( aabb.intersectsBoundingSphere( sphere ) ).to.equal( true );
+			expect( aabb.intersectsBoundingSphere( sphere ) ).to.be.true;
 
 		} );
 
@@ -151,7 +201,7 @@ describe( 'AABB', function () {
 			const aabb = new AABB( zero3, one3 );
 			const sphere = new BoundingSphere( new Vector3( 0.5, 0.5, 1.5 ), 0.5 );
 
-			expect( aabb.intersectsBoundingSphere( sphere ) ).to.equal( true );
+			expect( aabb.intersectsBoundingSphere( sphere ) ).to.be.true;
 
 		} );
 
@@ -160,7 +210,7 @@ describe( 'AABB', function () {
 			const aabb = new AABB( zero3, one3 );
 			const sphere = new BoundingSphere( new Vector3( 0.5, 0.5, 1.5 ), 0.4 );
 
-			expect( aabb.intersectsBoundingSphere( sphere ) ).to.equal( false );
+			expect( aabb.intersectsBoundingSphere( sphere ) ).to.be.false;
 
 		} );
 
@@ -181,6 +231,20 @@ describe( 'AABB', function () {
 
 	} );
 
+	describe( '#fromPoints()', function () {
+
+		it( 'should set the min and max vector of the AABB according to the given parameter', function () {
+
+			const points = [ new Vector3( 1, 1, 1 ), new Vector3( - 2, 2, - 2 ) ];
+			const aabb = new AABB().fromPoints( points );
+
+			expect( aabb.min ).to.deep.equal( new Vector3( - 2, 1, - 2 ) );
+			expect( aabb.max ).to.deep.equal( new Vector3( 1, 2, 1 ) );
+
+		} );
+
+	} );
+
 	describe( '#equals()', function () {
 
 		it( 'should execute a deep comparison between two objects', function () {
@@ -189,8 +253,8 @@ describe( 'AABB', function () {
 			const aabb2 = new AABB( new Vector3( 1, 1, 1 ), two3 );
 			const aabb3 = new AABB( zero3, one3 );
 
-			expect( aabb1.equals( aabb2 ) ).to.equal( true );
-			expect( aabb1.equals( aabb3 ) ).to.equal( false );
+			expect( aabb1.equals( aabb2 ) ).to.be.true;
+			expect( aabb1.equals( aabb3 ) ).to.be.false;
 
 		} );
 

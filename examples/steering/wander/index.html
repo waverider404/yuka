@@ -5,30 +5,10 @@
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 		<style>
 			body {
-				background:#777;
-				padding:0;
 				margin:0;
-				font-weight: bold;
 				overflow:hidden;
-				touch-action: none;
-			}
-
-			#info {
-				position: absolute;
-				top: 0px;
-				width: 100%;
-				color: #ffffff;
-				padding: 5px;
-				font-family:Monospace;
-				font-size:13px;
-				text-align:center;
-			}
-
-			a {
-				color: #ffffff;
 			}
 		</style>
-
 	</head>
 <body>
 
@@ -74,7 +54,7 @@
 				vehicle.rotation.fromEuler( 0, 2 * Math.PI * Math.random(), 0 );
 				vehicle.position.x = 2.5 - Math.random() * 5;
 				vehicle.position.z = 2.5 - Math.random() * 5;
-				vehicle.updateMatrix();
+				vehicle.updateWorldMatrix();
 
 				const wanderBehavior = new YUKA.WanderBehavior();
 				vehicle.steering.add( wanderBehavior );

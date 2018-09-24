@@ -21,6 +21,19 @@ class GameEntity {
 
 		this.active = true;
 
+		this.cache = {
+			position: new Vector3(),
+			rotation: new Quaternion(),
+			scale: new Vector3()
+		};
+
+		this.children = new Array();
+		this.parent = null;
+
+		this.neighbors = new Array();
+		this.neighborhoodRadius = 1;
+		this.updateNeighborhood = false;
+
 		this.position = new Vector3();
 		this.rotation = new Quaternion();
 		this.scale = new Vector3( 1, 1, 1 );
@@ -32,6 +45,7 @@ class GameEntity {
 		this.maxTurnRate = Math.PI;
 
 		this.matrix = new Matrix4();
+		this.worldMatrix = new Matrix4();
 
 		this.manager = null;
 
@@ -44,6 +58,32 @@ class GameEntity {
 	update( /* delta */ ) {}
 
 	//
+
+	add( entity ) {
+
+		if ( entity.parent !== null ) {
+
+			entity.parent.remove( entity );
+
+		}
+
+		this.children.push( entity );
+		entity.parent = this;
+
+		return this;
+
+	}
+
+	remove( entity ) {
+
+		const index = this.children.indexOf( entity );
+		this.children.splice( index, 1 );
+
+		entity.parent = null;
+
+		return this;
+
+	}
 
 	getDirection( result ) {
 
@@ -77,11 +117,68 @@ class GameEntity {
 
 	}
 
-	// updates the internal transformation matrix
+	// updates the internal transformation matrix if necessary
 
 	updateMatrix() {
 
+		const cache = this.cache;
+
+		if ( cache.position.equals( this.position ) &&
+				cache.rotation.equals( this.rotation ) &&
+				cache.scale.equals( this.scale ) ) {
+
+			return;
+
+		}
+
 		this.matrix.compose( this.position, this.rotation, this.scale );
+
+		cache.position.copy( this.position );
+		cache.rotation.copy( this.rotation );
+		cache.scale.copy( this.scale );
+
+	}
+
+	updateWorldMatrix( up = false, down = false ) {
+
+		const parent = this.parent;
+		const children = this.children;
+
+		// update higher levels first
+
+		if ( up === true && parent !== null ) {
+
+			parent.updateWorldMatrix( true );
+
+		}
+
+		// update this entity
+
+		this.updateMatrix();
+
+		if ( parent === null ) {
+
+			this.worldMatrix.copy( this.matrix );
+
+		} else {
+
+			this.worldMatrix.multiplyMatrices( this.parent.worldMatrix, this.matrix );
+
+		}
+
+		// update lower levels
+
+		if ( down === true ) {
+
+			for ( let i = 0, l = children.length; i < l; i ++ ) {
+
+				const child = children[ i ];
+
+				child.updateWorldMatrix( false, true );
+
+			}
+
+		}
 
 	}
 

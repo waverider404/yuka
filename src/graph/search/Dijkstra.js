@@ -6,7 +6,7 @@ import { PriorityQueue } from '../extra/PriorityQueue.js';
 
 class Dijkstra {
 
-	constructor( graph, source, target ) {
+	constructor( graph = null, source = - 1, target = - 1 ) {
 
 		this.graph = graph;
 		this.source = source;
@@ -21,7 +21,7 @@ class Dijkstra {
 
 	search() {
 
-		const outgoingEdges = [];
+		const outgoingEdges = new Array();
 		const pQueue = new PriorityQueue( compare );
 
 		pQueue.push( {
@@ -63,7 +63,9 @@ class Dijkstra {
 
 			this.graph.getEdgesOfNode( nextNodeIndex, outgoingEdges );
 
-			for ( let edge of outgoingEdges ) {
+			for ( let i = 0, l = outgoingEdges.length; i < l; i ++ ) {
+
+				const edge = outgoingEdges[ i ];
 
 				// the total cost to the node this edge points to is the cost to the
 				// current node plus the cost of the edge connecting them.
@@ -74,7 +76,7 @@ class Dijkstra {
 				// 1. If the node was never on the search frontier
 				// 2. If the cost to this node is better than before
 
-				if ( ( this._searchFrontier.has( nextNodeIndex ) === false ) || newCost < ( this._cost.get( edge.to ) || Infinity ) ) {
+				if ( ( this._searchFrontier.has( edge.to ) === false ) || newCost < ( this._cost.get( edge.to ) ) ) {
 
 					this._cost.set( edge.to, newCost );
 
@@ -101,11 +103,11 @@ class Dijkstra {
 
 		// array of node indices that comprise the shortest path from the source to the target
 
-		const path = [];
+		const path = new Array();
 
 		// just return an empty path if no path to target found or if no target has been specified
 
-		if ( this.found === false || this.target === undefined ) return path;
+		if ( this.found === false || this.target === - 1 ) return path;
 
 		// start with the target of the path
 

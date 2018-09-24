@@ -1,12 +1,12 @@
 /**
  * @author Mugen87 / https://github.com/Mugen87
- *
  */
 
 const expect = require( 'chai' ).expect;
 const YUKA = require( '../../../build/yuka.js' );
 
 const EntityManager = YUKA.EntityManager;
+const CellSpacePartitioning = YUKA.CellSpacePartitioning;
 const GameEntity = YUKA.GameEntity;
 const MessageDispatcher = YUKA.MessageDispatcher;
 const Telegram = YUKA.Telegram;
@@ -20,10 +20,13 @@ describe( 'EntityManager', function () {
 
 			const manager = new EntityManager();
 
-			expect( manager ).to.have.a.property( 'entities' ).that.is.a( 'map' );
-			expect( manager ).to.have.a.property( 'triggers' ).that.is.a( 'set' );
+			expect( manager ).to.have.a.property( 'entities' ).that.is.an( 'array' );
+			expect( manager ).to.have.a.property( 'triggers' ).that.is.an( 'array' );
+			expect( manager ).to.have.a.property( 'spatialIndex' ).that.is.null;
+			expect( manager ).to.have.a.property( '_entityMap' ).that.is.a( 'map' );
+			expect( manager ).to.have.a.property( '_indexMap' ).that.is.a( 'map' );
 			expect( manager ).to.have.a.property( '_started' ).that.is.a( 'set' );
-			expect( manager ).to.have.a.property( 'messageDispatcher' ).that.is.an.instanceof( MessageDispatcher );
+			expect( manager ).to.have.a.property( '_messageDispatcher' ).that.is.an.instanceof( MessageDispatcher );
 
 		} );
 
@@ -31,13 +34,15 @@ describe( 'EntityManager', function () {
 
 	describe( '#add()', function () {
 
-		it( 'should add a game entity to the internal map', function () {
+		it( 'should add a game entity to the entity manager', function () {
 
 			const manager = new EntityManager();
 			const entity = new GameEntity();
 
 			manager.add( entity );
-			expect( manager.entities.has( entity.id ) ).to.be.true;
+
+			expect( manager.entities ).to.include( entity );
+			expect( manager._entityMap.has( entity.id ) ).to.be.true;
 
 		} );
 
@@ -55,14 +60,16 @@ describe( 'EntityManager', function () {
 
 	describe( '#remove()', function () {
 
-		it( 'should remove a game entity from the internal map', function () {
+		it( 'should remove a game entity from the entity manager', function () {
 
 			const manager = new EntityManager();
 			const entity = new GameEntity();
 
 			manager.add( entity );
 			manager.remove( entity );
-			expect( manager.entities.has( entity.id ) ).to.be.false;
+
+			expect( manager.entities ).to.not.include( entity );
+			expect( manager._entityMap.has( entity.id ) ).to.be.false;
 
 		} );
 
@@ -81,14 +88,14 @@ describe( 'EntityManager', function () {
 
 	describe( '#addTrigger()', function () {
 
-		it( 'should add a trigger to the internal set', function () {
+		it( 'should add a trigger to the entity manager', function () {
 
 			const manager = new EntityManager();
 			const trigger = new Trigger();
 
 			manager.addTrigger( trigger );
 
-			expect( manager.triggers.has( trigger ) ).to.be.true;
+			expect( manager.triggers ).to.include( trigger );
 
 		} );
 
@@ -96,7 +103,7 @@ describe( 'EntityManager', function () {
 
 	describe( '#removeTrigger()', function () {
 
-		it( 'should remove a trigger from the internal set', function () {
+		it( 'should remove a trigger from the entity manager', function () {
 
 			const manager = new EntityManager();
 			const trigger = new Trigger();
@@ -104,7 +111,7 @@ describe( 'EntityManager', function () {
 			manager.addTrigger( trigger );
 			manager.removeTrigger( trigger );
 
-			expect( manager.triggers.has( trigger ) ).to.be.false;
+			expect( manager.triggers ).to.not.include( trigger );
 
 		} );
 
@@ -119,17 +126,18 @@ describe( 'EntityManager', function () {
 			const telegram = new Telegram();
 			const trigger = new Trigger();
 
-			manager.entities.set( entity.id, entity );
-			manager.triggers.add( trigger );
+			manager.entities.push( entity );
+			manager.triggers.push( trigger );
+			manager._entityMap.set( entity.id, entity );
 			manager._started.add( entity );
-			manager.messageDispatcher.delayedTelegrams.push( telegram );
+			manager._messageDispatcher.delayedTelegrams.push( telegram );
 
 			manager.clear();
 
-			expect( manager.entities.size ).to.equal( 0 );
-			expect( manager.triggers.size ).to.equal( 0 );
+			expect( manager.entities ).to.have.lengthOf( 0 );
+			expect( manager.triggers ).to.have.lengthOf( 0 );
 			expect( manager._started.size ).to.equal( 0 );
-			expect( manager.messageDispatcher.delayedTelegrams.length ).to.equal( 0 );
+			expect( manager._messageDispatcher.delayedTelegrams ).to.have.lengthOf( 0 );
 
 		} );
 
@@ -148,7 +156,7 @@ describe( 'EntityManager', function () {
 
 		} );
 
-		it( 'should return undefined if there is no game entity stored for the given ID', function () {
+		it( 'should return null if there is no game entity stored for the given ID', function () {
 
 			const manager = new EntityManager();
 
@@ -172,9 +180,13 @@ describe( 'EntityManager', function () {
 
 		} );
 
-		it( 'should return undefined if there is no game entity stored for the given name', function () {
+		it( 'should return null if there is no game entity stored for the given name', function () {
 
 			const manager = new EntityManager();
+			const entity = new GameEntity();
+			entity.name = 'name';
+
+			manager.add( entity );
 
 			expect( manager.getEntityByName( '' ) ).to.be.null;
 
@@ -184,30 +196,21 @@ describe( 'EntityManager', function () {
 
 	describe( '#update()', function () {
 
-		it( 'should call the update method of active game entites and triggers', function () {
+		it( 'should call the update method of game entites and triggers', function () {
 
 			const manager = new EntityManager();
+			const delta = 1;
 
-			const entity1 = new CustomEntity();
-			const entity2 = new CustomEntity();
-			entity2.active = false;
+			const entity = new CustomEntity();
+			manager.add( entity );
 
-			manager.add( entity1 );
-			manager.add( entity2 );
+			const trigger = new CustomTrigger();
+			manager.addTrigger( trigger );
 
-			const trigger1 = new CustomTrigger();
-			const trigger2 = new CustomTrigger();
-			trigger2.active = false;
+			manager.update( delta );
 
-			manager.addTrigger( trigger1 );
-			manager.addTrigger( trigger2 );
-
-			manager.update();
-
-			expect( entity1.updated ).to.be.true;
-			expect( entity2.updated ).to.be.false;
-			expect( trigger1.updated ).to.be.true;
-			expect( trigger2.updated ).to.be.false;
+			expect( entity.updated ).to.be.true;
+			expect( trigger.updated ).to.be.true;
 
 		} );
 
@@ -225,18 +228,231 @@ describe( 'EntityManager', function () {
 
 		} );
 
-		it( 'should update the matrix property of game entites', function () {
+		it( 'should update the matrix and worldMatrix property of game entites', function () {
 
 			const manager = new EntityManager();
 
-			const entity = new GameEntity();
-			entity.position.set( 1, 1, 1 );
-			entity.scale.set( 2, 2, 2 );
-			manager.add( entity );
+			const entity1 = new GameEntity();
+			entity1.position.set( 1, 1, 1 );
+
+			const entity2 = new GameEntity();
+			entity2.position.set( 0, 0, 1 );
+
+			entity1.add( entity2 );
+			manager.add( entity1 );
 
 			manager.update();
 
-			expect( entity.matrix.elements ).to.deep.equal( [ 2, 0, 0, 0, 0, 2, 0, 0, 0, 0, 2, 0, 1, 1, 1, 1 ] );
+			expect( entity1.matrix.elements ).to.deep.equal( [ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1 ] );
+			expect( entity1.worldMatrix.elements ).to.deep.equal( [ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1 ] );
+			expect( entity2.matrix.elements ).to.deep.equal( [ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1 ] );
+			expect( entity2.worldMatrix.elements ).to.deep.equal( [ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 2, 1 ] );
+
+		} );
+
+	} );
+
+	describe( '#updateNeighborhood()', function () {
+
+		it( 'should update the neighborhood of a single game entity if necessary', function () {
+
+			const manager = new EntityManager();
+
+			const entity1 = new GameEntity();
+			entity1.updateNeighborhood = true;
+			const entity2 = new GameEntity();
+
+			manager.add( entity1 );
+			manager.add( entity2 );
+
+			manager.updateNeighborhood( entity1 );
+
+			expect( entity1.neighbors ).to.include( entity2 );
+			expect( entity2.neighbors ).to.be.empty;
+
+		} );
+
+		it( 'should not add inactive game entities to the neighbors', function () {
+
+			const manager = new EntityManager();
+
+			const entity1 = new GameEntity();
+			entity1.updateNeighborhood = true;
+			const entity2 = new GameEntity();
+			entity2.active = false;
+
+			manager.add( entity1 );
+			manager.add( entity2 );
+
+			manager.updateNeighborhood( entity1 );
+
+			expect( entity1.neighbors ).to.not.include( entity2 );
+
+		} );
+
+		it( 'should use the neighborhoodRadius of the game entity to determine the neighborhood', function () {
+
+			const manager = new EntityManager();
+
+			const entity1 = new GameEntity();
+			entity1.updateNeighborhood = true;
+			entity1.neighborhoodRadius = 2;
+			const entity2 = new GameEntity();
+			entity2.position.set( 0, 0, 1 );
+			const entity3 = new GameEntity();
+			entity3.position.set( 0, 0, 4 );
+
+			manager.add( entity1 );
+			manager.add( entity2 );
+			manager.add( entity3 );
+
+			manager.updateNeighborhood( entity1 );
+
+			expect( entity1.neighbors ).to.include( entity2 );
+			expect( entity1.neighbors ).to.not.include( entity3 );
+
+		} );
+
+		it( 'should use a spatial index if possible', function () {
+
+			const height = 10, width = 10, depth = 10;
+			const cellsX = 5, cellsY = 5, cellsZ = 5;
+
+			const manager = new EntityManager();
+			const delta = 1;
+			manager.spatialIndex = new CellSpacePartitioning( height, width, depth, cellsX, cellsY, cellsZ );
+
+			const entity1 = new GameEntity();
+			entity1.updateNeighborhood = true;
+			const entity2 = new GameEntity();
+			entity2.position.set( 0, 0, 1 );
+			const entity3 = new GameEntity();
+			entity3.position.set( 0, 0, 3 );
+
+			manager.add( entity1 );
+			manager.add( entity2 );
+			manager.add( entity3 );
+
+			// the entites needs to be updated once in order to have a valid assignment to a partition
+
+			manager.updateEntity( entity1, delta );
+			manager.updateEntity( entity2, delta );
+			manager.updateEntity( entity3, delta );
+			manager.updateNeighborhood( entity1 );
+
+			expect( entity1.neighbors ).to.include( entity2 );
+			expect( entity1.neighbors ).to.not.include( entity3 );
+
+		} );
+
+	} );
+
+	describe( '#updateEntity()', function () {
+
+		it( 'should update a single game entity', function () {
+
+			const manager = new EntityManager();
+			const delta = 1;
+
+			const entity = new CustomEntity();
+
+			manager.updateEntity( entity, delta );
+			expect( entity.updated ).to.be.true;
+
+		} );
+
+		it( 'should only update the game entity if it is active', function () {
+
+			const manager = new EntityManager();
+			const delta = 1;
+
+			const entity = new CustomEntity();
+			entity.active = false;
+
+			manager.updateEntity( entity, delta );
+			expect( entity.updated ).to.be.false;
+
+		} );
+
+		it( 'should update the neighborhood of a game entity if necessary', function () {
+
+			const manager = new EntityManager();
+			const delta = 1;
+
+			const entity1 = new GameEntity();
+			entity1.updateNeighborhood = true;
+			const entity2 = new GameEntity();
+
+			manager.add( entity1 );
+			manager.add( entity2 );
+
+			manager.updateEntity( entity1, delta );
+
+			expect( entity1.neighbors ).to.include( entity2 );
+			expect( entity2.neighbors ).to.be.empty;
+
+		} );
+
+		it( 'should update a single game entity and its children', function () {
+
+			const manager = new EntityManager();
+			const delta = 1;
+
+			const entity1 = new CustomEntity();
+			const entity2 = new CustomEntity();
+
+			entity1.add( entity2 );
+
+			manager.updateEntity( entity1, delta );
+			expect( entity1.updated ).to.be.true;
+			expect( entity2.updated ).to.be.true;
+
+		} );
+
+		it( 'should update the assignment to a partition of a spatial index if necessary', function () {
+
+			const height = 10, width = 10, depth = 10;
+			const cellsX = 5, cellsY = 5, cellsZ = 5;
+
+			const manager = new EntityManager();
+			manager.spatialIndex = new CellSpacePartitioning( height, width, depth, cellsX, cellsY, cellsZ );
+			const delta = 1;
+
+			const entity = new CustomEntity();
+			entity.position.set( - 5, - 5, - 5 );
+
+			manager.updateEntity( entity, delta );
+
+			expect( manager._indexMap.get( entity ) ).to.equal( 0 );
+
+		} );
+
+	} );
+
+	describe( '#updateTrigger()', function () {
+
+		it( 'should update a single trigger', function () {
+
+			const manager = new EntityManager();
+			const delta = 1;
+
+			const trigger = new CustomTrigger();
+
+			manager.updateTrigger( trigger, delta );
+			expect( trigger.updated ).to.be.true;
+
+		} );
+
+		it( 'should only update the trigger if it is active', function () {
+
+			const manager = new EntityManager();
+			const delta = 1;
+
+			const trigger = new CustomTrigger();
+			trigger.active = false;
+
+			manager.updateTrigger( trigger, delta );
+			expect( trigger.updated ).to.be.false;
 
 		} );
 

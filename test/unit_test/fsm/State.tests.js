@@ -1,6 +1,5 @@
 /**
  * @author Mugen87 / https://github.com/Mugen87
- *
  */
 
 const expect = require( 'chai' ).expect;
@@ -16,6 +15,7 @@ describe( 'State', function () {
 
 			const state = new State();
 			expect( state ).respondTo( 'enter' );
+			state.enter();
 
 		} );
 
@@ -27,6 +27,7 @@ describe( 'State', function () {
 
 			const state = new State();
 			expect( state ).respondTo( 'execute' );
+			state.execute();
 
 		} );
 
@@ -38,6 +39,7 @@ describe( 'State', function () {
 
 			const state = new State();
 			expect( state ).respondTo( 'exit' );
+			state.exit();
 
 		} );
 
@@ -55,7 +57,7 @@ describe( 'State', function () {
 		it( 'should return "false" to indicate no message handling', function () {
 
 			const state = new State();
-			expect( state.onMessage() ).to.equal( false );
+			expect( state.onMessage() ).to.be.false;
 
 		} );
 

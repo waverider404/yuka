@@ -1,11 +1,11 @@
 /**
  * @author Mugen87 / https://github.com/Mugen87
+ * @author robp94 / https://github.com/robp94
  */
 
 import { SteeringBehavior } from '../SteeringBehavior.js';
-import { SeekBehavior } from './SeekBehavior.js';
-import { BoundingSphere } from '../../math/BoundingSphere';
 import { Vector3 } from '../../math/Vector3.js';
+import { BoundingSphere } from '../../math/BoundingSphere.js';
 import { Matrix4 } from '../../math/Matrix4.js';
 import { Ray } from '../../math/Ray.js';
 
@@ -21,23 +21,19 @@ const ray = new Ray( new Vector3( 0, 0, 0 ), new Vector3( 0, 0, 1 ) );
 
 class ObstacleAvoidanceBehavior extends SteeringBehavior {
 
-	constructor( entityManager = null ) {
+	constructor( obstacles = new Array() ) {
 
 		super();
 
-		this.entityManager = entityManager;
-		this.weigth = 3; // this behavior needs a higher value in order to prioritize the produced force
-		this.dBoxMinLength = 5; // minimum length of the detection box
-
-		this._waypoint = null;
-
-		// internal behaviors
-
-		this._seek = new SeekBehavior();
+		this.obstacles = obstacles;
+		this.brakingWeight = 0.2;
+		this.dBoxMinLength = 4; // minimum length of the detection box
 
 	}
 
 	calculate( vehicle, force /*, delta */ ) {
+
+		const obstacles = this.obstacles;
 
 		// this will keep track of the closest intersecting obstacle
 
@@ -47,17 +43,15 @@ class ObstacleAvoidanceBehavior extends SteeringBehavior {
 
 		let distanceToClosestObstacle = Infinity;
 
-		// the obstacles in the game world
-
-		const obstacles = this.entityManager.entities.values();
-
 		// the detection box length is proportional to the agent's velocity
 
 		const dBoxLength = this.dBoxMinLength + ( vehicle.getSpeed() / vehicle.maxSpeed ) * this.dBoxMinLength;
 
 		inverse.getInverse( vehicle.matrix );
 
-		for ( let obstacle of obstacles ) {
+		for ( let i = 0, l = obstacles.length; i < l; i ++ ) {
+
+			const obstacle = obstacles[ i ];
 
 			if ( obstacle === vehicle ) continue;
 
@@ -79,13 +73,14 @@ class ObstacleAvoidanceBehavior extends SteeringBehavior {
 
 					// do intersection test in local space of the vehicle
 
-					boundingSphere.set( localPositionOfObstacle, expandedRadius );
+					boundingSphere.center.copy( localPositionOfObstacle );
+					boundingSphere.radius = expandedRadius;
 
 					ray.intersectSphere( boundingSphere, intersectionPoint );
 
 					// compare distances
 
-					if ( intersectionPoint.z < distanceToClosestObstacle ) {
+					if ( intersectionPoint.z < distanceToClosestObstacle ) {
 
 						// save new minimum distance
 
@@ -107,42 +102,25 @@ class ObstacleAvoidanceBehavior extends SteeringBehavior {
 
 		}
 
-		// if an obstacle was detected, calculate a proper waypoint next to the obstacle
+		// if we have found an intersecting obstacle, calculate a steering force away from it
 
 		if ( closestObstacle !== null ) {
 
-			this._waypoint = localPositionOfClosestObstacle.clone();
+			// the closer the agent is to an object, the stronger the steering force should be
 
-			// check if it's better to steer left or right next to the obstacle
+			const multiplier = 1 + ( ( dBoxLength - localPositionOfClosestObstacle.z ) / dBoxLength );
 
-			const sign = Math.sign( localPositionOfClosestObstacle.x );
+			// calculate the lateral force
 
-			this._waypoint.x -= ( closestObstacle.boundingRadius + vehicle.boundingRadius ) * sign;
+			force.x = ( closestObstacle.boundingRadius - localPositionOfClosestObstacle.x ) * multiplier;
 
-			this._waypoint.applyMatrix4( vehicle.matrix );
+			// apply a braking force proportional to the obstacles distance from the vehicle
 
-		}
+			force.z = ( closestObstacle.boundingRadius - localPositionOfClosestObstacle.z ) * this.brakingWeight;
 
-		// proceed if there is an active waypoint
+			// finally, convert the steering vector from local to world space (just apply the rotation)
 
-		if ( this._waypoint !== null ) {
-
-			const distanceSq = this._waypoint.squaredDistanceTo( vehicle.position );
-
-			// if we are close enough, delete the current waypoint
-
-			if ( distanceSq < 1 ) {
-
-				this._waypoint = null;
-
-			} else {
-
-				// otherwise steer towards it
-
-				this._seek.target = this._waypoint;
-				this._seek.calculate( vehicle, force );
-
-			}
+			force.applyRotation( vehicle.rotation );
 
 		}
 

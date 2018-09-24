@@ -1,6 +1,5 @@
 /**
  * @author Mugen87 / https://github.com/Mugen87
- *
  */
 
 const expect = require( 'chai' ).expect;
@@ -27,6 +26,35 @@ describe( 'Edge', function () {
 			expect( edge.from ).to.equal( 0 );
 			expect( edge.to ).to.equal( 1 );
 			expect( edge.cost ).to.equal( 1 );
+
+		} );
+
+	} );
+
+	describe( '#copy()', function () {
+
+		it( 'should copy a given edge to the current instance', function () {
+
+			const edge1 = new Edge();
+			const edge2 = new Edge( 1, 2, 1 );
+
+			edge1.copy( edge2 );
+
+			expect( edge1 ).to.deep.equal( edge2 );
+
+		} );
+
+	} );
+
+	describe( '#clone()', function () {
+
+		it( 'should return a clone of the current instance', function () {
+
+			const edge1 = new Edge( 1, 2, 1 );
+			const edge2 = edge1.clone();
+
+			expect( edge1 ).to.not.equal( edge2 ); // true clone
+			expect( edge1 ).to.deep.equal( edge2 );
 
 		} );
 

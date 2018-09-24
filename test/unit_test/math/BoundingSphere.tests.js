@@ -1,6 +1,5 @@
 /**
  * @author Mugen87 / https://github.com/Mugen87
- *
  */
 
 const expect = require( 'chai' ).expect;
@@ -94,7 +93,7 @@ describe( 'BoundingSphere', function () {
 			const sphere = new BoundingSphere( zero3, 2 );
 			const point = new Vector3( 1, 0, 0 );
 
-			expect( sphere.containsPoint( point ) ).to.equal( true );
+			expect( sphere.containsPoint( point ) ).to.be.true;
 
 		} );
 
@@ -103,7 +102,7 @@ describe( 'BoundingSphere', function () {
 			const sphere = new BoundingSphere( zero3, 2 );
 			const point = new Vector3( 2, 0, 0 );
 
-			expect( sphere.containsPoint( point ) ).to.equal( true );
+			expect( sphere.containsPoint( point ) ).to.be.true;
 
 		} );
 
@@ -112,7 +111,7 @@ describe( 'BoundingSphere', function () {
 			const sphere = new BoundingSphere( zero3, 2 );
 			const point = new Vector3( 3, 0, 0 );
 
-			expect( sphere.containsPoint( point ) ).to.equal( false );
+			expect( sphere.containsPoint( point ) ).to.be.false;
 
 		} );
 
@@ -125,7 +124,7 @@ describe( 'BoundingSphere', function () {
 			const sphere1 = new BoundingSphere( zero3, 1 );
 			const sphere2 = new BoundingSphere( new Vector3( 0, 1, 0 ), 1 );
 
-			expect( sphere1.intersectsBoundingSphere( sphere2 ) ).to.equal( true );
+			expect( sphere1.intersectsBoundingSphere( sphere2 ) ).to.be.true;
 
 		} );
 
@@ -134,7 +133,7 @@ describe( 'BoundingSphere', function () {
 			const sphere1 = new BoundingSphere( zero3, 1 );
 			const sphere2 = new BoundingSphere( new Vector3( 0, 2, 0 ), 1 );
 
-			expect( sphere1.intersectsBoundingSphere( sphere2 ) ).to.equal( true );
+			expect( sphere1.intersectsBoundingSphere( sphere2 ) ).to.be.true;
 
 		} );
 
@@ -143,7 +142,7 @@ describe( 'BoundingSphere', function () {
 			const sphere1 = new BoundingSphere( zero3, 1 );
 			const sphere2 = new BoundingSphere( two3, 1 );
 
-			expect( sphere1.intersectsBoundingSphere( sphere2 ) ).to.equal( false );
+			expect( sphere1.intersectsBoundingSphere( sphere2 ) ).to.be.false;
 
 		} );
 
@@ -157,8 +156,8 @@ describe( 'BoundingSphere', function () {
 			const sphere2 = new BoundingSphere( new Vector3( 1, 1, 1 ), 1 );
 			const sphere3 = new BoundingSphere( two3, 3 );
 
-			expect( sphere1.equals( sphere2 ) ).to.equal( true );
-			expect( sphere1.equals( sphere3 ) ).to.equal( false );
+			expect( sphere1.equals( sphere2 ) ).to.be.true;
+			expect( sphere1.equals( sphere3 ) ).to.be.false;
 
 		} );
 

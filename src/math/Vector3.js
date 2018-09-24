@@ -173,6 +173,26 @@ class Vector3 {
 
 	}
 
+	min( v ) {
+
+		this.x = Math.min( this.x, v.x );
+		this.y = Math.min( this.y, v.y );
+		this.z = Math.min( this.z, v.z );
+
+		return this;
+
+	}
+
+	max( v ) {
+
+		this.x = Math.max( this.x, v.x );
+		this.y = Math.max( this.y, v.y );
+		this.z = Math.max( this.z, v.z );
+
+		return this;
+
+	}
+
 	dot( v ) {
 
 		return ( this.x * v.x ) + ( this.y * v.y ) + ( this.z * v.z );
@@ -331,7 +351,7 @@ class Vector3 {
 
 	}
 
-	toArray( array = [], offset = 0 ) {
+	toArray( array, offset = 0 ) {
 
 		array[ offset + 0 ] = this.x;
 		array[ offset + 1 ] = this.y;

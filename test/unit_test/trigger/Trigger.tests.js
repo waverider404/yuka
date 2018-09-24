@@ -1,6 +1,5 @@
 /**
  * @author Mugen87 / https://github.com/Mugen87
- *
  */
 
 const expect = require( 'chai' ).expect;
@@ -17,7 +16,7 @@ describe( 'Trigger', function () {
 
 			const trigger = new Trigger();
 
-			expect( trigger ).to.have.a.property( 'active' ).that.is.equal( true );
+			expect( trigger ).to.have.a.property( 'active' ).that.is.true;
 			expect( trigger ).to.have.a.property( 'region' ).that.is.an.instanceof( TriggerRegion );
 
 		} );
@@ -33,8 +32,8 @@ describe( 'Trigger', function () {
 
 			trigger.check( {} );
 
-			expect( trigger.entityPassed ).to.equal( true );
-			expect( trigger.executeCalled ).to.equal( true );
+			expect( trigger.entityPassed ).to.be.true;
+			expect( trigger.executeCalled ).to.be.true;
 
 		} );
 
@@ -46,8 +45,8 @@ describe( 'Trigger', function () {
 			trigger.active = false;
 			trigger.check( {} );
 
-			expect( trigger.entityPassed ).to.equal( false );
-			expect( trigger.executeCalled ).to.equal( false );
+			expect( trigger.entityPassed ).to.be.false;
+			expect( trigger.executeCalled ).to.be.false;
 
 		} );
 
@@ -57,8 +56,8 @@ describe( 'Trigger', function () {
 
 			trigger.check( {} );
 
-			expect( trigger.entityPassed ).to.equal( false );
-			expect( trigger.executeCalled ).to.equal( false );
+			expect( trigger.entityPassed ).to.be.false;
+			expect( trigger.executeCalled ).to.be.false;
 
 		} );
 
@@ -70,6 +69,7 @@ describe( 'Trigger', function () {
 
 			const trigger = new Trigger();
 			expect( trigger ).respondTo( 'execute' );
+			trigger.execute();
 
 		} );
 
@@ -81,6 +81,7 @@ describe( 'Trigger', function () {
 
 			const trigger = new Trigger();
 			expect( trigger ).respondTo( 'update' );
+			trigger.update();
 
 		} );
 

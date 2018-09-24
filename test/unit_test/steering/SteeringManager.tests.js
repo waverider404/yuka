@@ -1,6 +1,5 @@
 /**
  * @author Mugen87 / https://github.com/Mugen87
- *
  */
 
 const expect = require( 'chai' ).expect;
@@ -164,6 +163,42 @@ describe( 'SteeringManager', function () {
 			steeringManager._calculateByOrder( 1 );
 
 			expect( steeringManager._steeringForce ).to.deep.equal( { x: 0, y: 0, z: 70 } );
+
+		} );
+
+		it( 'should perform an early out if the maximum force of the vehicle is reached', function () {
+
+			const vehicle = new Vehicle();
+			vehicle.maxForce = 5;
+			const steeringManager = new SteeringManager( vehicle );
+
+			const steeringBehavior1 = new CustomSteeringBehavior1();
+			steeringManager.add( steeringBehavior1 );
+
+			const steeringBehavior2 = new CustomSteeringBehavior2();
+			steeringManager.add( steeringBehavior2 );
+
+			steeringManager._calculateByOrder( 1 );
+
+			expect( steeringManager._steeringForce ).to.deep.equal( { x: 0, y: 0, z: 5 } );
+
+		} );
+
+		it( 'should ignore inactive steering behaviors', function () {
+
+			const vehicle = new Vehicle();
+			const steeringManager = new SteeringManager( vehicle );
+
+			const steeringBehavior1 = new CustomSteeringBehavior1();
+			steeringManager.add( steeringBehavior1 );
+
+			const steeringBehavior2 = new CustomSteeringBehavior2();
+			steeringBehavior2.active = false;
+			steeringManager.add( steeringBehavior2 );
+
+			steeringManager._calculateByOrder( 1 );
+
+			expect( steeringManager._steeringForce ).to.deep.equal( { x: 0, y: 0, z: 10 } );
 
 		} );
 

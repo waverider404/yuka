@@ -1,7 +1,6 @@
 /**
  * @author Mugen87 / https://github.com/Mugen87
  * @author robp94 / https://github.com/robp94
- *
  */
 
 const expect = require( 'chai' ).expect;
@@ -26,19 +25,6 @@ describe( 'Matrix3', function () {
 
 	} );
 
-	describe( '#equals()', function () {
-
-		it( 'should return true if equal else false', function () {
-
-			const m1 = new Matrix3();
-			const m2 = new Matrix3();
-
-			expect( m1.equals( m2 ) ).to.be.true;
-
-		} );
-
-	} );
-
 	describe( '#set()', function () {
 
 		it( 'should set values of matrix', function () {
@@ -54,7 +40,7 @@ describe( 'Matrix3', function () {
 
 	describe( '#copy()', function () {
 
-		it( 'should return copy of matrix', function () {
+		it( 'should copy a given matrix to the current instance', function () {
 
 			const m1 = new Matrix3().set( 0, 1, 2, 3, 4, 5, 6, 7, 8 );
 			const m2 = new Matrix3().copy( m1 );
@@ -80,7 +66,7 @@ describe( 'Matrix3', function () {
 
 	describe( '#multiply()', function () {
 
-		it( 'should return matrix multiplied with other matrix', function () {
+		it( 'should perform a matrix multiplication', function () {
 
 			const m1 = new Matrix3().set( 2, 3, 5, 7, 11, 13, 17, 19, 23 );
 			const m2 = new Matrix3().set( 29, 31, 37, 41, 43, 47, 53, 59, 61 );
@@ -95,7 +81,7 @@ describe( 'Matrix3', function () {
 
 	describe( '#premultiply()', function () {
 
-		it( 'should return other matrix multiplied with matrix', function () {
+		it( 'should perform a matrix multiplication but in different order', function () {
 
 			const m1 = new Matrix3().set( 2, 3, 5, 7, 11, 13, 17, 19, 23 );
 			const m2 = new Matrix3().set( 29, 31, 37, 41, 43, 47, 53, 59, 61 );
@@ -110,7 +96,7 @@ describe( 'Matrix3', function () {
 
 	describe( '#multiplyMatrices()', function () {
 
-		it( 'should return multiplied matrix of two matrices', function () {
+		it( 'should perform a matrix multiplication with two given matrices', function () {
 
 			const m1 = new Matrix3().set( 2, 3, 5, 7, 11, 13, 17, 19, 23 );
 			const m2 = new Matrix3().set( 29, 31, 37, 41, 43, 47, 53, 59, 61 );
@@ -124,7 +110,7 @@ describe( 'Matrix3', function () {
 
 	describe( '#multiplyScalar()', function () {
 
-		it( 'should return matrix multiplied by scalar', function () {
+		it( 'should mulitply the matrix with a scalar value', function () {
 
 			const m1 = new Matrix3().multiplyScalar( 2 );
 
@@ -136,7 +122,7 @@ describe( 'Matrix3', function () {
 
 	describe( '#extractBasis()', function () {
 
-		it( 'should put values of matrix in the three given vectors', function () {
+		it( 'should extract the basis vectors into the given target vectors', function () {
 
 			const v0 = new Vector3();
 			const v1 = new Vector3();
@@ -155,7 +141,7 @@ describe( 'Matrix3', function () {
 
 	describe( '#makeBasis()', function () {
 
-		it( 'should build matrix of three given vectors', function () {
+		it( 'should build matrix of the given vectors', function () {
 
 			const v0 = new Vector3( - 1, 0, 0 );
 			const v1 = new Vector3( 0, 1, 0 );
@@ -237,7 +223,7 @@ describe( 'Matrix3', function () {
 
 	describe( '#fromArray()', function () {
 
-		it( 'should fill matrix with values of array', function () {
+		it( 'should fill the matrix with values from an array', function () {
 
 			const m1 = new Matrix3().fromArray( [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ] );
 
@@ -249,16 +235,32 @@ describe( 'Matrix3', function () {
 
 	describe( '#toArray()', function () {
 
-		it( 'should return array of matrix values', function () {
+		it( 'should store all values of the matrix in the given array', function () {
 
 			const m1 = new Matrix3();
+			const array = [];
 
-			expect( m1.toArray() ).to.deep.equal( [ 1, 0, 0, 0, 1, 0, 0, 0, 1 ] );
+			m1.toArray( array );
+
+			expect( array ).to.deep.equal( [ 1, 0, 0, 0, 1, 0, 0, 0, 1 ] );
 
 		} );
 
 	} );
 
+	describe( '#equals()', function () {
 
+		it( 'should return true if the given matrix is equal to the current instance', function () {
+
+			const m1 = new Matrix3();
+			const m2 = new Matrix3();
+			const m3 = new Matrix3().set( 1, 2, 3, 4, 5, 6, 7, 8, 9 );
+
+			expect( m1.equals( m2 ) ).to.be.true;
+			expect( m1.equals( m3 ) ).to.be.false;
+
+		} );
+
+	} );
 
 } );

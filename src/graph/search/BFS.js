@@ -6,7 +6,7 @@ import { Edge } from '../core/Edge.js';
 
 class BFS {
 
-	constructor( graph, source, target ) {
+	constructor( graph = null, source = - 1, target = - 1 ) {
 
 		this.graph = graph;
 		this.source = source;
@@ -24,8 +24,8 @@ class BFS {
 
 		// create a queue(FIFO) of edges, done via an array
 
-		const queue = [];
-		const outgoingEdges = [];
+		const queue = new Array();
+		const outgoingEdges = new Array();
 
 		// create a dummy edge and put on the queue to begin the search
 
@@ -74,7 +74,9 @@ class BFS {
 			// push the edges leading from the node this edge points to onto the
 			// queue (provided the edge does not point to a previously visited node)
 
-			for ( let edge of outgoingEdges ) {
+			for ( let i = 0, l = outgoingEdges.length; i < l; i ++ ) {
+
+				const edge = outgoingEdges[ i ];
 
 				if ( this._visited.has( edge.to ) === false ) {
 
@@ -102,11 +104,11 @@ class BFS {
 
 		// array of node indices that comprise the shortest path from the source to the target
 
-		const path = [];
+		const path = new Array();
 
 		// just return an empty path if no path to target found or if no target has been specified
 
-		if ( this.found === false || this.target === undefined ) return path;
+		if ( this.found === false || this.target === - 1 ) return path;
 
 		// start with the target of the path
 

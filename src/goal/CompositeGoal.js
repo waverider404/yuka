@@ -6,7 +6,7 @@ import { Goal } from './Goal.js';
 
 class CompositeGoal extends Goal {
 
-	constructor( owner ) {
+	constructor( owner = null ) {
 
 		super( owner );
 
@@ -28,7 +28,9 @@ class CompositeGoal extends Goal {
 
 		const subgoals = this.subgoals;
 
-		for ( let subgoal of subgoals ) {
+		for ( let i = 0, l = subgoals.length; i < l; i ++ ) {
+
+			const subgoal = subgoals[ i ];
 
 			subgoal.terminate();
 
@@ -37,6 +39,22 @@ class CompositeGoal extends Goal {
 		subgoals.length = 0;
 
 		return this;
+
+	}
+
+	currentSubgoal() {
+
+		const length = this.subgoals.length;
+
+		if ( length > 0 ) {
+
+			return this.subgoals[ length - 1 ];
+
+		} else {
+
+			return null;
+
+		}
 
 	}
 
@@ -50,7 +68,7 @@ class CompositeGoal extends Goal {
 
 			const subgoal = subgoals[ i ];
 
-			if ( subgoal.completed() === true || subgoal.failed() === true ) {
+			if ( ( subgoal.completed() === true ) || ( subgoal.failed() === true ) ) {
 
 				subgoal.terminate();
 				subgoals.pop();
@@ -65,15 +83,18 @@ class CompositeGoal extends Goal {
 
 		// if any subgoals remain, process the one at the back of the list
 
-		if ( subgoals.length > 0 ) {
+		const subgoal = this.currentSubgoal();
 
-			const subgoal = subgoals[ subgoals.length - 1 ];
+		if ( subgoal !== null ) {
+
+			subgoal.activateIfInactive();
+
 			subgoal.execute();
 
 			// if subgoal is completed but more subgoals are in the list, return 'active'
 			// status in order to keep processing the list of subgoals
 
-			if ( ( subgoal.status === Goal.STATUS.COMPLETED ) && ( subgoals.length > 1 ) ) {
+			if ( ( subgoal.completed() === true ) && ( subgoals.length > 1 ) ) {
 
 				return Goal.STATUS.ACTIVE;
 
@@ -83,7 +104,6 @@ class CompositeGoal extends Goal {
 
 			}
 
-
 		} else {
 
 			return Goal.STATUS.COMPLETED;
@@ -92,23 +112,21 @@ class CompositeGoal extends Goal {
 
 	}
 
+	hasSubgoals() {
+
+		return this.subgoals.length > 0;
+
+	}
+
 	// messaging
 
 	handleMessage( telegram ) {
 
-		return this.forwardMessage( telegram );
+		const subgoal = this.currentSubgoal();
 
-	}
+		if ( subgoal !== null ) {
 
-	forwardMessage( telegram ) {
-
-		const subgoals = this.subgoals;
-		const length = subgoals.length;
-
-		if ( length > 0 ) {
-
-			const subgoal = subgoals[ length - 1 ]; // pick last goal
-			subgoal.handleMessage( telegram );
+			return subgoal.handleMessage( telegram );
 
 		}
 

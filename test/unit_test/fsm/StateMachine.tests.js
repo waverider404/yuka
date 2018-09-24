@@ -1,6 +1,5 @@
 /**
  * @author Mugen87 / https://github.com/Mugen87
- *
  */
 
 const expect = require( 'chai' ).expect;
@@ -21,8 +20,15 @@ describe( 'StateMachine', function () {
 
 			stateMachine.update();
 
-			expect( stateMachine.globalState.executeCalled ).to.equal( true );
-			expect( stateMachine.currentState.executeCalled ).to.equal( true );
+			expect( stateMachine.globalState.executeCalled ).to.be.true;
+			expect( stateMachine.currentState.executeCalled ).to.be.true;
+
+		} );
+
+		it( 'should do nothing if not states are set', function () {
+
+			const stateMachine = new StateMachine();
+			stateMachine.update();
 
 		} );
 
@@ -37,7 +43,7 @@ describe( 'StateMachine', function () {
 
 			stateMachine.add( 'STATE', state );
 
-			expect( stateMachine.states.has( 'STATE' ) ).to.equal( true );
+			expect( stateMachine.states.has( 'STATE' ) ).to.be.true;
 			expect( stateMachine.states.get( 'STATE' ) ).to.equal( state );
 
 		} );
@@ -51,7 +57,7 @@ describe( 'StateMachine', function () {
 
 			stateMachine.add( 'STATE', state );
 
-			expect( stateMachine.states.has( 'STATE' ) ).to.equal( false );
+			expect( stateMachine.states.has( 'STATE' ) ).to.be.false;
 
 		} );
 
@@ -67,7 +73,7 @@ describe( 'StateMachine', function () {
 			stateMachine.add( 'STATE', state );
 			stateMachine.remove( 'STATE' );
 
-			expect( stateMachine.states.has( 'STATE' ) ).to.equal( false );
+			expect( stateMachine.states.has( 'STATE' ) ).to.be.false;
 
 		} );
 
@@ -137,7 +143,7 @@ describe( 'StateMachine', function () {
 			stateMachine.add( 'STATE', state );
 			stateMachine.currentState = state;
 
-			expect( stateMachine.in( 'STATE' ) ).to.equal( true );
+			expect( stateMachine.in( 'STATE' ) ).to.be.true;
 
 		} );
 
@@ -151,17 +157,25 @@ describe( 'StateMachine', function () {
 			stateMachine.globalState = new CustomState();
 			stateMachine.currentState = new CustomState();
 
-			expect( stateMachine.handleMessage() ).to.equal( false );
+			expect( stateMachine.handleMessage() ).to.be.false;
 
 		} );
 
-		it( 'should return "true" if a state handles the message', function () {
+		it( 'should return "true" if the current state handles the message', function () {
 
 			const stateMachine = new StateMachine();
-			stateMachine.globalState = new CustomState();
 			stateMachine.currentState = new MessageCustomState();
 
-			expect( stateMachine.handleMessage() ).to.equal( true );
+			expect( stateMachine.handleMessage() ).to.be.true;
+
+		} );
+
+		it( 'should return "true" if the global state handles the message', function () {
+
+			const stateMachine = new StateMachine();
+			stateMachine.globalState = new MessageCustomState();
+
+			expect( stateMachine.handleMessage() ).to.be.true;
 
 		} );
 
@@ -182,12 +196,12 @@ describe( 'StateMachine', function () {
 
 			stateMachine._change( newState );
 
-			expect( currentState.enterCalled ).to.equal( false );
-			expect( currentState.exitCalled ).to.equal( true );
+			expect( currentState.enterCalled ).to.be.false;
+			expect( currentState.exitCalled ).to.be.true;
 			expect( stateMachine.previousState ).to.equal( currentState );
 			expect( stateMachine.currentState ).to.equal( newState );
-			expect( newState.enterCalled ).to.equal( true );
-			expect( newState.exitCalled ).to.equal( false );
+			expect( newState.enterCalled ).to.be.true;
+			expect( newState.exitCalled ).to.be.false;
 
 		} );
 

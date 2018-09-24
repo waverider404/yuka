@@ -1,6 +1,5 @@
 /**
  * @author Mugen87 / https://github.com/Mugen87
- *
  */
 
 const expect = require( 'chai' ).expect;
@@ -91,6 +90,20 @@ describe( 'FleeBehavior', function () {
 			fleeBehavior.calculate( vehicle, force );
 
 			expect( force ).to.deep.equal( { x: 0, y: 0, z: 0 } );
+
+		} );
+
+		it( 'should produce a default velocity ( 0, 0, 1 ) if target and vehicle position are identical', function () {
+
+			const target = new Vector3();
+			const vehicle = new Vehicle();
+			const force = new Vector3();
+
+			const fleeBehavior = new FleeBehavior( target );
+
+			fleeBehavior.calculate( vehicle, force );
+
+			expect( force ).to.deep.equal( { x: 0, y: 0, z: 1 } );
 
 		} );
 

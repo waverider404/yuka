@@ -1,6 +1,5 @@
 /**
  * @author Mugen87 / https://github.com/Mugen87
- *
  */
 
 const expect = require( 'chai' ).expect;
@@ -41,7 +40,7 @@ describe( 'Path', function () {
 
 	describe( '#clear()', function () {
 
-		it( 'should remove all waypoints from the internal array', function () {
+		it( 'should remove all waypoints from the internal array and reset the current waypoint index', function () {
 
 			const path = new Path();
 
@@ -50,6 +49,7 @@ describe( 'Path', function () {
 			path.clear();
 
 			expect( path._waypoints ).to.be.empty;
+			expect( path._index ).to.equal( 0 );
 
 		} );
 
@@ -88,7 +88,7 @@ describe( 'Path', function () {
 
 			path._index = 2;
 
-			expect( path.finished() ).to.equal( true );
+			expect( path.finished() ).to.be.true;
 
 		} );
 
@@ -103,7 +103,7 @@ describe( 'Path', function () {
 
 			path._index = 2;
 
-			expect( path.finished() ).to.equal( false );
+			expect( path.finished() ).to.be.false;
 
 		} );
 

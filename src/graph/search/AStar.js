@@ -7,7 +7,7 @@ import { HeuristicPolicyEuclid } from '../extra/HeuristicPolicy.js';
 
 class AStar {
 
-	constructor( graph, source, target ) {
+	constructor( graph = null, source = - 1, target = - 1 ) {
 
 		this.graph = graph;
 		this.source = source;
@@ -23,7 +23,7 @@ class AStar {
 
 	search() {
 
-		const outgoingEdges = [];
+		const outgoingEdges = new Array();
 		const pQueue = new PriorityQueue( compare );
 
 		pQueue.push( {
@@ -65,7 +65,9 @@ class AStar {
 
 			this.graph.getEdgesOfNode( nextNodeIndex, outgoingEdges );
 
-			for ( let edge of outgoingEdges ) {
+			for ( let i = 0, l = outgoingEdges.length; i < l; i ++ ) {
+
+				const edge = outgoingEdges[ i ];
 
 				// A* cost formula : F = G + H
 
@@ -85,7 +87,7 @@ class AStar {
 				// 1. If the node was never on the search frontier
 				// 2. If the cost to this node is better than before
 
-				if ( ( this._searchFrontier.has( nextNodeIndex ) === false ) || G < ( this._cost.get( edge.to ) || Infinity ) ) {
+				if ( ( this._searchFrontier.has( edge.to ) === false ) || G < ( this._cost.get( edge.to ) ) ) {
 
 					this._cost.set( edge.to, G );
 
@@ -112,11 +114,11 @@ class AStar {
 
 		// array of node indices that comprise the shortest path from the source to the target
 
-		const path = [];
+		const path = new Array();
 
 		// just return an empty path if no path to target found or if no target has been specified
 
-		if ( this.found === false || this.target === undefined ) return path;
+		if ( this.found === false || this.target === - 1 ) return path;
 
 		// start with the target of the path
 
@@ -145,12 +147,6 @@ class AStar {
 	getSearchTree() {
 
 		return [ ...this._shortestPathTree.values() ];
-
-	}
-
-	setHeuristic( heuristic ) {
-
-		this.heuristic = heuristic;
 
 	}
 

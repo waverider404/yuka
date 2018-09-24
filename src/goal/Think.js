@@ -3,21 +3,48 @@
  */
 
 import { Goal } from './Goal.js';
+import { CompositeGoal } from './CompositeGoal.js';
 import { Logger } from '../core/Logger.js';
 
-class Think extends Goal {
+class Think extends CompositeGoal {
 
-	constructor( owner ) {
+	constructor( owner = null ) {
 
 		super( owner );
 
-		this.evaluators = new Set();
+		this.evaluators = new Array();
+
+	}
+
+	activate() {
+
+		this.arbitrate();
+
+	}
+
+	execute() {
+
+		this.activateIfInactive();
+
+		const subgoalStatus = this.executeSubgoals();
+
+		if ( subgoalStatus === Goal.STATUS.COMPLETED || subgoalStatus === Goal.STATUS.FAILED ) {
+
+			this.status = Goal.STATUS.INACTIVE;
+
+		}
+
+	}
+
+	terminate() {
+
+		this.clearSubgoals();
 
 	}
 
 	addEvaluator( evaluator ) {
 
-		this.evaluators.add( evaluator );
+		this.evaluators.push( evaluator );
 
 		return this;
 
@@ -25,7 +52,8 @@ class Think extends Goal {
 
 	removeEvaluator( evaluator ) {
 
-		this.evaluators.delete( evaluator );
+		const index = this.evaluators.indexOf( evaluator );
+		this.evaluators.splice( index, 1 );
 
 		return this;
 
@@ -33,14 +61,18 @@ class Think extends Goal {
 
 	arbitrate() {
 
+		const evaluators = this.evaluators;
+
 		let bestDesirabilty = - 1;
 		let bestEvaluator = null;
 
 		// try to find the best top-level goal/strategy for the entity
 
-		for ( let evaluator of this.evaluators ) {
+		for ( let i = 0, l = evaluators.length; i < l; i ++ ) {
 
-			const desirabilty = evaluator.calculateDesirability( this.owner );
+			const evaluator = evaluators[ i ];
+
+			let desirabilty = evaluator.calculateDesirability( this.owner );
 			desirabilty *= evaluator.characterBias;
 
 			if ( desirabilty >= bestDesirabilty ) {

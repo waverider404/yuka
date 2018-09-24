@@ -9,6 +9,8 @@ import { _Math } from '../../math/Math.js';
 const targetWorld = new Vector3();
 const randomDisplacement = new Vector3();
 
+// this behavior only produces a 2D force (XZ)
+
 class WanderBehavior extends SteeringBehavior {
 
 	constructor( radius = 1, distance = 5, jitter = 5 ) {
@@ -21,7 +23,7 @@ class WanderBehavior extends SteeringBehavior {
 
 		this._targetLocal = new Vector3();
 
-		this._setup();
+		generateRandomPointOnCircle( this.radius, this._targetLocal );
 
 	}
 
@@ -56,7 +58,7 @@ class WanderBehavior extends SteeringBehavior {
 
 		// project the target into world space
 
-		targetWorld.applyMatrix4( vehicle.matrix );
+		targetWorld.applyMatrix4( vehicle.worldMatrix );
 
 		// and steer towards it
 
@@ -64,17 +66,16 @@ class WanderBehavior extends SteeringBehavior {
 
 	}
 
-	_setup() {
+}
 
-		const theta = Math.random() * Math.PI * 2;
+//
 
-		// setup a vector to a target position on the wander sphere
-		// target lies always in the XZ plane
+function generateRandomPointOnCircle( radius, target ) {
 
-		this._targetLocal.x = this.radius * Math.cos( theta );
-		this._targetLocal.z = this.radius * Math.sin( theta );
+	const theta = Math.random() * Math.PI * 2;
 
-	}
+	target.x = radius * Math.cos( theta );
+	target.z = radius * Math.sin( theta );
 
 }
 
