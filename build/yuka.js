@@ -8,6 +8,28 @@
 	 * @author Mugen87 / https://github.com/Mugen87
 	 */
 
+	class Config {
+
+		static setWorkerPath( path ) {
+
+			currentWorkerPath = path;
+
+		}
+
+		static getWorkerPath() {
+
+			return currentWorkerPath;
+
+		}
+
+	}
+
+	let currentWorkerPath = null;
+
+	/**
+	 * @author Mugen87 / https://github.com/Mugen87
+	 */
+
 	class Telegram {
 
 		constructor( sender, receiver, message, delay, data ) {
@@ -7224,28 +7246,6 @@
 	 * @author Mugen87 / https://github.com/Mugen87
 	 */
 
-	class Config {
-
-		static setWorkerPath( path ) {
-
-			currentWorkerPath = path;
-
-		}
-
-		static getWorkerPath() {
-
-			return currentWorkerPath;
-
-		}
-
-	}
-
-	let currentWorkerPath = null;
-
-	/**
-	 * @author Mugen87 / https://github.com/Mugen87
-	 */
-
 	let nextId$1 = 0;
 
 	class PathPlanner {
@@ -7319,6 +7319,7 @@
 
 	}
 
+	exports.Config = Config;
 	exports.EntityManager = EntityManager;
 	exports.GameEntity = GameEntity;
 	exports.Logger = Logger;

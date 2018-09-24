@@ -1,3 +1,4 @@
+export { Config } from './core/Config.js';
 export { EntityManager } from './core/EntityManager.js';
 export { GameEntity } from './core/GameEntity.js';
 export { Logger } from './core/Logger.js';

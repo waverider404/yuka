@@ -54,6 +54,7 @@
 			showNavigatonPaths: false,
 			showRegions: false,
 			showSpatialIndex: false,
+			useWorker: false
 		};
 
 		let spatialIndexHelper;
@@ -149,6 +150,12 @@
 
 			} );
 
+			gui.add( params, 'useWorker', 1, 30 ).name( 'use web worker' ).onChange( ( value ) => {
+
+				console.log( value );
+
+			} );
+
 			gui.open();
 
 			const controls = new OrbitControls( camera, renderer.domElement );
@@ -222,6 +229,12 @@
 				//
 
 				animate();
+
+				setInterval( function (  ) {
+
+					// TODO
+
+				}, 2000 );
 
 			} );
 

@@ -2,6 +2,28 @@
  * @author Mugen87 / https://github.com/Mugen87
  */
 
+class Config {
+
+	static setWorkerPath( path ) {
+
+		currentWorkerPath = path;
+
+	}
+
+	static getWorkerPath() {
+
+		return currentWorkerPath;
+
+	}
+
+}
+
+let currentWorkerPath = null;
+
+/**
+ * @author Mugen87 / https://github.com/Mugen87
+ */
+
 class Telegram {
 
 	constructor( sender, receiver, message, delay, data ) {
@@ -7218,28 +7240,6 @@ class Trigger {
  * @author Mugen87 / https://github.com/Mugen87
  */
 
-class Config {
-
-	static setWorkerPath( path ) {
-
-		currentWorkerPath = path;
-
-	}
-
-	static getWorkerPath() {
-
-		return currentWorkerPath;
-
-	}
-
-}
-
-let currentWorkerPath = null;
-
-/**
- * @author Mugen87 / https://github.com/Mugen87
- */
-
 let nextId$1 = 0;
 
 class PathPlanner {
@@ -7313,4 +7313,4 @@ class PathPlanner {
 
 }
 
-export { EntityManager, GameEntity, Logger, MessageDispatcher, MovingEntity, Regulator, Time, Telegram, State, StateMachine, CompositeGoal, Goal, GoalEvaluator, Think, Edge, Graph, Node, PriorityQueue, AStar, BFS, DFS, Dijkstra, AABB, BoundingSphere, LineSegment, _Math as Math, Matrix3, Matrix4, Plane, Quaternion, Ray, Vector3, NavEdge, NavNode, GraphUtils, Corridor, HalfEdge, NavMesh, NavMeshLoader, Polygon, Cell, CellSpacePartitioning, Path, Smoother, SteeringBehavior, SteeringManager, Vehicle, AlignmentBehavior, ArriveBehavior, CohesionBehavior, EvadeBehavior, FleeBehavior, FollowPathBehavior, InterposeBehavior, ObstacleAvoidanceBehavior, PursuitBehavior, SeekBehavior, SeparationBehavior, WanderBehavior, RectangularTriggerRegion, SphericalTriggerRegion, TriggerRegion, Trigger, PathPlanner, HeuristicPolicyEuclid, HeuristicPolicyEuclidSquared, HeuristicPolicyManhatten, HeuristicPolicyDijkstra, WorldUp };
+export { Config, EntityManager, GameEntity, Logger, MessageDispatcher, MovingEntity, Regulator, Time, Telegram, State, StateMachine, CompositeGoal, Goal, GoalEvaluator, Think, Edge, Graph, Node, PriorityQueue, AStar, BFS, DFS, Dijkstra, AABB, BoundingSphere, LineSegment, _Math as Math, Matrix3, Matrix4, Plane, Quaternion, Ray, Vector3, NavEdge, NavNode, GraphUtils, Corridor, HalfEdge, NavMesh, NavMeshLoader, Polygon, Cell, CellSpacePartitioning, Path, Smoother, SteeringBehavior, SteeringManager, Vehicle, AlignmentBehavior, ArriveBehavior, CohesionBehavior, EvadeBehavior, FleeBehavior, FollowPathBehavior, InterposeBehavior, ObstacleAvoidanceBehavior, PursuitBehavior, SeekBehavior, SeparationBehavior, WanderBehavior, RectangularTriggerRegion, SphericalTriggerRegion, TriggerRegion, Trigger, PathPlanner, HeuristicPolicyEuclid, HeuristicPolicyEuclidSquared, HeuristicPolicyManhatten, HeuristicPolicyDijkstra, WorldUp };
