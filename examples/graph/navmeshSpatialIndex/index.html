@@ -45,10 +45,11 @@
 
 		let entityManager, time;
 
-		const vehicleCount = 100;
+		const vehicleCount = 1000;
 		const vehicleMeshes = [];
-		const vehicles = []
+		const vehicles = [];
 		const pathHelpers = [];
+		let useWorker = false;
 
 		const params = {
 			showNavigatonPaths: false,
@@ -59,6 +60,7 @@
 
 		let spatialIndexHelper;
 		let regionHelper;
+		YUKA.Config.setWorkerPath( '../../../build/yuka.worker.js' );
 
 		init();
 
@@ -73,6 +75,7 @@
 			//
 
 			const pathMaterial = new THREE.LineBasicMaterial( { color: 0xff0000 } );
+			const pathPlanner = new YUKA.PathPlanner();
 
 			//
 
@@ -152,7 +155,7 @@
 
 			gui.add( params, 'useWorker', 1, 30 ).name( 'use web worker' ).onChange( ( value ) => {
 
-				console.log( value );
+				useWorker = value;
 
 			} );
 
@@ -200,6 +203,7 @@
 					vehicle.navMesh = navigationMesh;
 					vehicle.maxSpeed = 1.5;
 					vehicle.maxForce = 10;
+					vehicle.pathPlanner = pathPlanner;
 
 					const toRegion = vehicle.navMesh.getRandomRegion();
 					vehicle.position.copy( toRegion.centroid );
@@ -232,7 +236,22 @@
 
 				setInterval( function (  ) {
 
-					// TODO
+					console.time('path');
+					for ( let i = 0, l = vehicles.length; i < l; i ++ ) {
+
+					const vehicle = vehicles[ i ];
+
+					const pathHelper = pathHelpers[ i ];
+
+					vehicle.fromRegion = vehicle.toRegion;
+					if(useWorker){
+						getRandomPathWorker(vehicle, pathHelper)
+					}else{
+						getRandomPath( vehicle, pathHelper );
+					}
+
+					}
+					console.timeEnd('path')
 
 				}, 2000 );
 
@@ -246,8 +265,9 @@
 
 			const from = vehicle.position;
 			const to = toRegion.centroid;
-
 			const path = vehicle.navMesh.findPath( from, to );
+
+
 
 			pathHelper.geometry.dispose();
 			pathHelper.geometry = new THREE.BufferGeometry().setFromPoints( path );
@@ -266,6 +286,33 @@
 
 		}
 
+		function getRandomPathWorker( vehicle, pathHelper ) {
+
+			const toRegion = vehicle.navMesh.getRandomRegion();
+
+			const from = vehicle.position;
+			const to = toRegion.centroid;
+
+
+			vehicle.pathPlanner.findPath(from,to).then(( path ) =>
+			{
+				pathHelper.geometry.dispose();
+				pathHelper.geometry = new THREE.BufferGeometry().setFromPoints( path );
+
+				const followPathBehavior = vehicle.steering.behaviors[ 0 ];
+				followPathBehavior.active = true;
+				followPathBehavior.path.clear();
+
+				for ( const point of path ) {
+
+					followPathBehavior.path.add( point );
+
+				}
+
+				vehicle.toRegion = toRegion;
+			});
+		}
+
 		function onWindowResize() {
 
 			camera.aspect = window.innerWidth / window.innerHeight;
@@ -279,7 +326,7 @@
 
 				requestAnimationFrame( animate );
 
-				//
+				/*
 
 				for ( let i = 0, l = vehicles.length; i < l; i ++ ) {
 
@@ -297,7 +344,7 @@
 
 				}
 
-				//
+				*/
 
 				const delta = time.update().getDelta();
 

@@ -11,6 +11,7 @@ class CustomVehicle extends Vehicle {
 		super();
 
 		this.navMesh = null;
+		this.pathPlanner = null;
 
 		this.currentRegion = null;
 		this.fromRegion = null;

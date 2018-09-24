@@ -7267,7 +7267,16 @@
 
 				const f32Array = new Float32Array( event.data.buffer );
 
-				callback( undefined, f32Array );
+				const path = new Array();
+
+				for ( let i = 0, l = f32Array.length; i < l; i += 3 ) {
+
+					const v = new Vector3( f32Array[ i ], f32Array[ i + 1 ], f32Array[ i + 2 ] );
+					path.push( v );
+
+				}
+
+				callback( undefined, path );
 
 				activeRequest.delete( requestId );
 
@@ -7308,8 +7317,10 @@
 					}
 
 				} );
+				const f = new Float32Array( [ from.x, from.y, from.z ] ).buffer;
+				const t = new Float32Array( [ to.x, to.y, to.z ] ).buffer;
 
-				this.worker.postMessage( { op: 'search', requestId: requestId } );
+				this.worker.postMessage( { op: 'search', requestId: requestId, from: f, to: t } );
 
 			} );
 
