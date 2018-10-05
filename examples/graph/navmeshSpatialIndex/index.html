@@ -50,12 +50,15 @@
 		const vehicles = [];
 		const pathHelpers = [];
 		let useWorker = false;
+		let useMessagePacking = false;
+		let pathPlanner;
 
 		const params = {
 			showNavigatonPaths: false,
 			showRegions: false,
 			showSpatialIndex: false,
-			useWorker: false
+			useWorker: false,
+			useMessagePacking: false
 		};
 
 		let spatialIndexHelper;
@@ -75,7 +78,7 @@
 			//
 
 			const pathMaterial = new THREE.LineBasicMaterial( { color: 0xff0000 } );
-			const pathPlanner = new YUKA.PathPlanner();
+			pathPlanner = new YUKA.PathPlanner();
 
 			//
 
@@ -156,6 +159,12 @@
 			gui.add( params, 'useWorker', 1, 30 ).name( 'use web worker' ).onChange( ( value ) => {
 
 				useWorker = value;
+
+			} );
+
+			gui.add( params, 'useMessagePacking', 1, 30 ).name( 'use message packing' ).onChange( ( value ) => {
+
+				useMessagePacking = value;
 
 			} );
 
@@ -323,6 +332,8 @@
 		}
 
 		function animate() {
+
+				pathPlanner.post();
 
 				requestAnimationFrame( animate );
 

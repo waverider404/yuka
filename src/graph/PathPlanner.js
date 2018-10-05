@@ -17,27 +17,31 @@ class PathPlanner {
 
 		this.worker = new Worker( path );
 
+		this.array = new Array();
+
 		this.worker.addEventListener( 'message', ( event ) => {
 
-			const requestId = event.data.requestId;
-			const activeRequest = this.activeRequest;
-
-			const callback = activeRequest.get( requestId );
-
 			const f32Array = new Float32Array( event.data.buffer );
+			let i = 0;
 
-			const path = new Array();
+			while ( i < f32Array.length ) {
 
-			for ( let i = 0, l = f32Array.length; i < l; i += 3 ) {
+				const requestId = f32Array[ i ];
+				const length = f32Array[ i + 1 ];
+				const path = new Array();
+				const callback = this.activeRequest.get( requestId );
 
-				const v = new Vector3( f32Array[ i ], f32Array[ i + 1 ], f32Array[ i + 2 ] );
-				path.push( v );
+				for ( let j = i + 2; j < length + i + 2; j += 3 ) {
+
+					const v = new Vector3( f32Array[ j ], f32Array[ j + 1 ], f32Array[ j + 2 ] );
+					path.push( v );
+
+				}
+				callback( undefined, path );
+				this.activeRequest.delete( requestId );
+				i += length + 2;
 
 			}
-
-			callback( undefined, path );
-
-			activeRequest.delete( requestId );
 
 		} );
 
@@ -76,14 +80,26 @@ class PathPlanner {
 				}
 
 			} );
-			const f = new Float32Array( [ from.x, from.y, from.z ] ).buffer;
-			const t = new Float32Array( [ to.x, to.y, to.z ] ).buffer;
 
-			this.worker.postMessage( { op: 'search', requestId: requestId, from: f, to: t } );
+			this.array.push( requestId, from.x, from.y, from.z, to.x, to.y, to.z );
+
+			//this.worker.postMessage( { op: 'search', requestId: requestId, from: f, to: t } );
 
 		} );
 
 		return promise;
+
+	}
+
+	post() {
+
+		if ( this.array.length > 0 ) {
+
+			const buffer = new Float32Array( this.array ).buffer;
+			this.array.length = 0;
+			this.worker.postMessage( { op: 'searches', buffer: buffer }, [ buffer ] );
+
+		}
 
 	}
 
