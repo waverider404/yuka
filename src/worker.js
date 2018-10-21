@@ -9,6 +9,7 @@ import { NavMeshLoader } from "./navigation/navmesh/NavMeshLoader";
 
 
 self.navMesh = null;
+self.bufferSize = 100;
 
 self.addEventListener( 'message', ( event ) => {
 
@@ -58,32 +59,14 @@ self.addEventListener( 'message', ( event ) => {
 			self.postMessage( { buffer: buffer, requestId: event.data.requestId }, [ buffer ] );
 			break;*/
 		case 'searches':
+			console.time( 'worker' );
 			const f = new Float32Array( event.data.buffer );
-			const array = new Array();
-			for ( let i = 0, l = f.length; i < l; i += 7 ) {
-
-				array.push( f[ i ] ); // requestId
-				const from = new Vector3( f[ i + 1 ], f[ i + 2 ], f[ i + 3 ] );
-				const to = new Vector3( f[ i + 4 ], f[ i + 5 ], f[ i + 6 ] );
-
-				const path = self.navMesh.findPath( from, to );
-
-				array.push( path.length * 3 );
-				for ( let j = 0, jl = path.length; j < jl; j++ ) {
-
-					array.push( path[ j ].x );
-					array.push( path[ j ].y );
-					array.push( path[ j ].z );
-
-
-				}
-
-			}
-
+			const array = self.navMesh.findPaths( f );
 
 			const buffer = new Float32Array( array ).buffer;
 
 			self.postMessage( { buffer: buffer }, [ buffer ] );
+			console.timeEnd( 'worker' );
 			break;
 
 	}

@@ -4731,6 +4731,32 @@ class NavMesh {
 
 	}
 
+	findPaths( f ) {
+
+		const array = new Array();
+		for ( let i = 0, l = f.length; i < l; i += 7 ) {
+
+			array.push( f[ i ] ); // requestId
+			const from = new Vector3( f[ i + 1 ], f[ i + 2 ], f[ i + 3 ] );
+			const to = new Vector3( f[ i + 4 ], f[ i + 5 ], f[ i + 6 ] );
+
+			const path = this.findPath( from, to );
+
+			array.push( path.length * 3 );
+			for ( let j = 0, jl = path.length; j < jl; j ++ ) {
+
+				array.push( path[ j ].x );
+				array.push( path[ j ].y );
+				array.push( path[ j ].z );
+
+
+			}
+
+		}
+		return array;
+
+	}
+
 	clampMovement( currentRegion, startPosition, endPosition, clampPosition ) {
 
 		let newRegion = this.getRegionForPoint( endPosition, this.epsilonContainsTest );
@@ -7250,33 +7276,18 @@ class PathPlanner {
 
 		this.activeRequest = new Map();
 
+		this.navMesh = null;
+
 		this.worker = new Worker( path );
 
 		this.array = new Array();
 
+		this.useWorker = false;
+
 		this.worker.addEventListener( 'message', ( event ) => {
 
 			const f32Array = new Float32Array( event.data.buffer );
-			let i = 0;
-
-			while ( i < f32Array.length ) {
-
-				const requestId = f32Array[ i ];
-				const length = f32Array[ i + 1 ];
-				const path = new Array();
-				const callback = this.activeRequest.get( requestId );
-
-				for ( let j = i + 2; j < length + i + 2; j += 3 ) {
-
-					const v = new Vector3( f32Array[ j ], f32Array[ j + 1 ], f32Array[ j + 2 ] );
-					path.push( v );
-
-				}
-				callback( undefined, path );
-				this.activeRequest.delete( requestId );
-				i += length + 2;
-
-			}
+			this.resolvePromises( f32Array );
 
 		} );
 
@@ -7328,15 +7339,81 @@ class PathPlanner {
 
 	post() {
 
+		const f = new Float32Array( this.array );
+		const buffer = f.buffer;
+		//this.array.length = 0;
+		this.worker.postMessage( { op: 'searches', buffer: buffer }, [ buffer ] );
+		console.time( 'main' );
+		this.findPaths(); //for performance
+		console.timeEnd( 'main' );
+		this.array.length = 0;
+
+	}
+
+	doWork( count = - 1 ) {
+
 		if ( this.array.length > 0 ) {
 
-			const buffer = new Float32Array( this.array ).buffer;
-			this.array.length = 0;
-			this.worker.postMessage( { op: 'searches', buffer: buffer }, [ buffer ] );
+			if ( this.useWorker ) {
+
+				this.post();
+
+			} else {
+
+				this.resolvePromises( this.findPaths( count ) );
+
+			}
 
 		}
 
 	}
+
+	findPaths( count = - 1 ) {
+
+		if ( count < 0 ) {
+
+			count = this.array.length;
+
+		}
+
+		const array = this.array.splice( 0, count * 7 );
+
+		const f = new Float32Array( array );
+
+		const resultArray = this.navMesh.findPaths( f );
+
+		const f32Array = new Float32Array( resultArray );
+
+		return f32Array;
+
+	}
+
+	resolvePromises( f32Array ) {
+
+		let i = 0;
+
+		while ( i < f32Array.length ) {
+
+			const requestId = f32Array[ i ];
+			const length = f32Array[ i + 1 ];
+			const path = new Array();
+			const callback = this.activeRequest.get( requestId );
+
+			for ( let j = i + 2; j < length + i + 2; j += 3 ) {
+
+				const v = new Vector3( f32Array[ j ], f32Array[ j + 1 ], f32Array[ j + 2 ] );
+				path.push( v );
+
+			}
+			callback( undefined, path );
+			this.activeRequest.delete( requestId );
+			i += length + 2;
+
+		}
+
+	}
+
+
 
 }
 

@@ -67,6 +67,30 @@
 
 		init();
 
+		window.requestIdleCallback = window.requestIdleCallback || function(handler) {
+			let startTime = Date.now();
+
+			return setTimeout(function() {
+				handler({
+					didTimeout: false,
+					timeRemaining: function() {
+						return Math.max(0, 50.0 - (Date.now() - startTime));
+					}
+				});
+			}, 1);
+		};
+		window.cancelIdleCallback = window.cancelIdleCallback ||
+			function (id) {
+				clearTimeout(id);
+			};
+
+		function idleWork (deadline) {
+			while (deadline.timeRemaining() > 0 )
+				pathPlanner.doWork(deadline.timeRemaining()|0); //get int of double
+
+			requestIdleCallback(idleWork);
+		}
+
 		function init() {
 
 			scene = new THREE.Scene();
@@ -158,7 +182,7 @@
 
 			gui.add( params, 'useWorker', 1, 30 ).name( 'use web worker' ).onChange( ( value ) => {
 
-				useWorker = value;
+				pathPlanner.useWorker = value;
 
 			} );
 
@@ -239,13 +263,17 @@
 				const partitionCount = document.getElementById( 'partitionCount' );
 				partitionCount.textContent = navigationMesh.spatialIndex.cells.length;
 
+				pathPlanner.navMesh = navigationMesh;
+
+				requestIdleCallback(idleWork);
+
 				//
 
 				animate();
 
 				setInterval( function (  ) {
+					console.log(pathPlanner.array.length);
 
-					console.time('path');
 					for ( let i = 0, l = vehicles.length; i < l; i ++ ) {
 
 					const vehicle = vehicles[ i ];
@@ -253,14 +281,11 @@
 					const pathHelper = pathHelpers[ i ];
 
 					vehicle.fromRegion = vehicle.toRegion;
-					if(useWorker){
-						getRandomPathWorker(vehicle, pathHelper)
-					}else{
-						getRandomPath( vehicle, pathHelper );
-					}
+					getRandomPath( vehicle, pathHelper );
 
 					}
-					console.timeEnd('path')
+
+
 
 				}, 2000 );
 
@@ -269,33 +294,6 @@
 		}
 
 		function getRandomPath( vehicle, pathHelper ) {
-
-			const toRegion = vehicle.navMesh.getRandomRegion();
-
-			const from = vehicle.position;
-			const to = toRegion.centroid;
-			const path = vehicle.navMesh.findPath( from, to );
-
-
-
-			pathHelper.geometry.dispose();
-			pathHelper.geometry = new THREE.BufferGeometry().setFromPoints( path );
-
-			const followPathBehavior = vehicle.steering.behaviors[ 0 ];
-			followPathBehavior.active = true;
-			followPathBehavior.path.clear();
-
-			for ( const point of path ) {
-
-				followPathBehavior.path.add( point );
-
-			}
-
-			vehicle.toRegion = toRegion;
-
-		}
-
-		function getRandomPathWorker( vehicle, pathHelper ) {
 
 			const toRegion = vehicle.navMesh.getRandomRegion();
 
@@ -320,6 +318,7 @@
 
 				vehicle.toRegion = toRegion;
 			});
+
 		}
 
 		function onWindowResize() {
@@ -333,7 +332,7 @@
 
 		function animate() {
 
-				pathPlanner.post();
+
 
 				requestAnimationFrame( animate );
 
