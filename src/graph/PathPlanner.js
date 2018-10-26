@@ -4,75 +4,45 @@
 
 import { Config } from '../core/Config.js';
 import { Vector3 } from '../math/Vector3.js';
+import { TaskPathPlanner } from "../task/TaskPathPlanner";
+import { TaskType } from "../task/TaskType";
 
-let nextId = 0;
+class PathPlanner extends TaskType {
 
-class PathPlanner {
+	constructor( taskQueue ) {
 
-	constructor() {
-
-		const path = Config.getWorkerPath();
-
-		this.activeRequest = new Map();
+		super( taskQueue, Config.getWorkerPath() );
 
 		this.navMesh = null;
-
-		this.worker = new Worker( path );
-
-		this.array = new Array();
-
-		this.useWorker = false;
-
-		this.worker.addEventListener( 'message', ( event ) => {
-
-			const f32Array = new Float32Array( event.data.buffer );
-			this.resolvePromises( f32Array );
-
-		} );
-
-		this.worker.postMessage( { op: 'init' } );
-
-	}
-
-	run() {
-
-		this.worker.postMessage( { op: 'search' } );
-
-	}
-
-	terminate() {
-
-		this.worker.terminate();
 
 	}
 
 	findPath( from, to ) {
 
-		const promise = new Promise( ( resolve, reject ) => {
 
-			const requestId = nextId ++;
+		const requestId = this.nextId;
+		const promise = this.createPromise();
 
-			this.activeRequest.set( requestId, ( error, result ) => {
 
-				if ( error ) {
-
-					reject( error );
-
-				} else {
-
-					resolve( result );
-
-				}
-
-			} );
+		if ( this.useWorker ) {
 
 			this.array.push( requestId, from.x, from.y, from.z, to.x, to.y, to.z );
 
-			//this.worker.postMessage( { op: 'search', requestId: requestId, from: f, to: t } );
+		} else {
 
-		} );
+			this.taskQueue.enqueue( new TaskPathPlanner( requestId, from, to, this ) );
+
+		}
+
+		//this.worker.postMessage( { op: 'search', requestId: requestId, from: f, to: t } );
 
 		return promise;
+
+	}
+
+	findPathX( requestId, from, to ) {
+
+		return this.navMesh.findPath( from, to );
 
 	}
 
@@ -82,9 +52,9 @@ class PathPlanner {
 		const buffer = f.buffer;
 		//this.array.length = 0;
 		this.worker.postMessage( { op: 'searches', buffer: buffer }, [ buffer ] );
-		console.time( 'main' );
+		/*console.time( 'main' );
 		this.findPaths(); //for performance
-		console.timeEnd( 'main' );
+		console.timeEnd( 'main' );*/
 		this.array.length = 0;
 
 	}
@@ -136,7 +106,6 @@ class PathPlanner {
 			const requestId = f32Array[ i ];
 			const length = f32Array[ i + 1 ];
 			const path = new Array();
-			const callback = this.activeRequest.get( requestId );
 
 			for ( let j = i + 2; j < length + i + 2; j += 3 ) {
 
@@ -144,8 +113,7 @@ class PathPlanner {
 				path.push( v );
 
 			}
-			callback( undefined, path );
-			this.activeRequest.delete( requestId );
+			this.resolvePromise( requestId, path );
 			i += length + 2;
 
 		}

@@ -7263,27 +7263,98 @@ class Trigger {
 }
 
 /**
- * @author Mugen87 / https://github.com/Mugen87
+ * @author robp94 / https://github.com/robp94
+ */
+let id = 0;
+
+class Task {
+
+	constructor( taskType ) {
+
+		this.id = id ++;
+		this.taskType = taskType;
+
+	}
+
+
+	execute() {
+	}
+
+	resolve() {
+	}
+
+}
+
+/**
+ * @author robp94 / https://github.com/robp94
  */
 
-let nextId$1 = 0;
+class TaskPathPlanner extends Task {
 
-class PathPlanner {
+	constructor( requestId, from, to, taskType ) {
 
-	constructor() {
+		super( taskType );
+		this.requestId = requestId;
+		this.from = from;
+		this.to = to;
+		this.path = null;
 
-		const path = Config.getWorkerPath();
+	}
+
+	execute() {
+
+		this.path = this.taskType.findPathX( this.requestId, this.from, this.to );
+
+		this.resolve();
+
+	}
+
+
+	resolve() {
+
+		this.taskType.resolvePromise( this.requestId, this.path );
+
+	}
+
+}
+
+/**
+ * @author robp94 / https://github.com/robp94
+ */
+
+
+
+class TaskType {
+
+	constructor( taskQueue, path = null ) {
 
 		this.activeRequest = new Map();
-
-		this.navMesh = null;
+		this.nextId = 0;
 
 		this.worker = new Worker( path );
 
-		this.array = new Array();
+		this.newRequests = new Array();
 
+		this.taskQueue = taskQueue;
+
+		if ( path === null ) {
+
+
+			this.worker = null;
+
+		} else {
+
+			this.worker = new Worker( path );
+
+		}
 		this.useWorker = false;
+		this.init();//???
 
+	}
+
+	init() {
+
+		//init worker set eventlistner
 		this.worker.addEventListener( 'message', ( event ) => {
 
 			const f32Array = new Float32Array( event.data.buffer );
@@ -7295,10 +7366,8 @@ class PathPlanner {
 
 	}
 
-	run() {
-
-		this.worker.postMessage( { op: 'search' } );
-
+	post() {
+		//send data to worker
 	}
 
 	terminate() {
@@ -7307,11 +7376,11 @@ class PathPlanner {
 
 	}
 
-	findPath( from, to ) {
+	createPromise( ) {
 
 		const promise = new Promise( ( resolve, reject ) => {
 
-			const requestId = nextId$1 ++;
+			const requestId = this.nextId ++;
 
 			this.activeRequest.set( requestId, ( error, result ) => {
 
@@ -7327,13 +7396,65 @@ class PathPlanner {
 
 			} );
 
+		} );
+		return promise;
+
+	}
+
+	resolvePromise( requestId, data ) {
+
+		const callback = this.activeRequest.get( requestId );
+		callback( undefined, data );
+		this.activeRequest.delete( requestId );
+
+	}
+
+	resolvePromises() {
+		//resolvePromises used for worker
+	}
+
+}
+
+/**
+ * @author Mugen87 / https://github.com/Mugen87
+ */
+
+class PathPlanner extends TaskType {
+
+	constructor( taskQueue ) {
+
+		super( taskQueue, Config.getWorkerPath() );
+
+		this.navMesh = null;
+
+	}
+
+	findPath( from, to ) {
+
+
+		const requestId = this.nextId;
+		const promise = this.createPromise();
+
+
+		if ( this.useWorker ) {
+
 			this.array.push( requestId, from.x, from.y, from.z, to.x, to.y, to.z );
 
-			//this.worker.postMessage( { op: 'search', requestId: requestId, from: f, to: t } );
+		} else {
 
-		} );
+			this.taskQueue.enqueue( new TaskPathPlanner( requestId, from, to, this ) );
+
+		}
+
+		//this.worker.postMessage( { op: 'search', requestId: requestId, from: f, to: t } );
 
 		return promise;
+
+	}
+
+	findPathX( requestId, from, to ) {
+
+		return this.navMesh.findPath( from, to );
 
 	}
 
@@ -7343,9 +7464,9 @@ class PathPlanner {
 		const buffer = f.buffer;
 		//this.array.length = 0;
 		this.worker.postMessage( { op: 'searches', buffer: buffer }, [ buffer ] );
-		console.time( 'main' );
+		/*console.time( 'main' );
 		this.findPaths(); //for performance
-		console.timeEnd( 'main' );
+		console.timeEnd( 'main' );*/
 		this.array.length = 0;
 
 	}
@@ -7397,7 +7518,6 @@ class PathPlanner {
 			const requestId = f32Array[ i ];
 			const length = f32Array[ i + 1 ];
 			const path = new Array();
-			const callback = this.activeRequest.get( requestId );
 
 			for ( let j = i + 2; j < length + i + 2; j += 3 ) {
 
@@ -7405,8 +7525,7 @@ class PathPlanner {
 				path.push( v );
 
 			}
-			callback( undefined, path );
-			this.activeRequest.delete( requestId );
+			this.resolvePromise( requestId, path );
 			i += length + 2;
 
 		}
@@ -7417,4 +7536,67 @@ class PathPlanner {
 
 }
 
-export { Config, EntityManager, GameEntity, Logger, MessageDispatcher, MovingEntity, Regulator, Time, Telegram, State, StateMachine, CompositeGoal, Goal, GoalEvaluator, Think, Edge, Graph, Node, PriorityQueue, AStar, BFS, DFS, Dijkstra, AABB, BoundingSphere, LineSegment, _Math as Math, Matrix3, Matrix4, Plane, Quaternion, Ray, Vector3, NavEdge, NavNode, GraphUtils, Corridor, HalfEdge, NavMesh, NavMeshLoader, Polygon, Cell, CellSpacePartitioning, Path, Smoother, SteeringBehavior, SteeringManager, Vehicle, AlignmentBehavior, ArriveBehavior, CohesionBehavior, EvadeBehavior, FleeBehavior, FollowPathBehavior, InterposeBehavior, ObstacleAvoidanceBehavior, PursuitBehavior, SeekBehavior, SeparationBehavior, WanderBehavior, RectangularTriggerRegion, SphericalTriggerRegion, TriggerRegion, Trigger, PathPlanner, HeuristicPolicyEuclid, HeuristicPolicyEuclidSquared, HeuristicPolicyManhatten, HeuristicPolicyDijkstra, WorldUp };
+/**
+ * @author robp94 / https://github.com/robp94
+ */
+class TaskQueue {
+
+	constructor() {
+
+		this.tasks = new Array();
+		this.active = false;
+		this.handler = runTaskQueue.bind( this );
+		this.taskHandle = 0;
+
+	}
+
+	enqueue( task ) {
+
+		this.tasks.push( task );
+
+	}
+
+	update() {
+
+		if ( this.tasks.length > 0 && this.active === false ) {
+
+			this.active = true;
+			window.requestIdleCallback( this.handler );
+
+		} else {
+
+			this.active = false;
+
+		}
+
+	}
+
+}
+
+function runTaskQueue( deadline ) {
+
+	const tasks = this.tasks;
+
+	while ( ( deadline.timeRemaining() > 0 || deadline.didTimeout ) && tasks.length > 0 ) {
+
+		tasks[ 0 ].execute();
+
+		tasks.shift();
+
+	}
+
+	if ( tasks.length > 0 ) {
+
+		this.taskHandle = requestIdleCallback( this.handler );
+		this.active = true;
+
+	} else {
+
+		this.taskHandle = 0;
+		this.active = false;
+
+	}
+
+}
+
+export { Config, EntityManager, GameEntity, Logger, MessageDispatcher, MovingEntity, Regulator, Time, Telegram, State, StateMachine, CompositeGoal, Goal, GoalEvaluator, Think, Edge, Graph, Node, PriorityQueue, AStar, BFS, DFS, Dijkstra, AABB, BoundingSphere, LineSegment, _Math as Math, Matrix3, Matrix4, Plane, Quaternion, Ray, Vector3, NavEdge, NavNode, GraphUtils, Corridor, HalfEdge, NavMesh, NavMeshLoader, Polygon, Cell, CellSpacePartitioning, Path, Smoother, SteeringBehavior, SteeringManager, Vehicle, AlignmentBehavior, ArriveBehavior, CohesionBehavior, EvadeBehavior, FleeBehavior, FollowPathBehavior, InterposeBehavior, ObstacleAvoidanceBehavior, PursuitBehavior, SeekBehavior, SeparationBehavior, WanderBehavior, RectangularTriggerRegion, SphericalTriggerRegion, TriggerRegion, Trigger, PathPlanner, Task, TaskQueue, TaskType, TaskPathPlanner, HeuristicPolicyEuclid, HeuristicPolicyEuclidSquared, HeuristicPolicyManhatten, HeuristicPolicyDijkstra, WorldUp };

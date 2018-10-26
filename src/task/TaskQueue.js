@@ -25,6 +25,10 @@ class TaskQueue {
 			this.active = true;
 			window.requestIdleCallback( this.handler );
 
+		} else {
+
+			this.active = false;
+
 		}
 
 	}
@@ -38,7 +42,6 @@ function runTaskQueue( deadline ) {
 	while ( ( deadline.timeRemaining() > 0 || deadline.didTimeout ) && tasks.length > 0 ) {
 
 		tasks[ 0 ].execute();
-		tasks[ 0 ].resolve();
 
 		tasks.shift();
 

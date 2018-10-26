@@ -52,6 +52,7 @@
 		let useWorker = false;
 		let useMessagePacking = false;
 		let pathPlanner;
+		let taskQueue = new YUKA.TaskQueue();
 
 		const params = {
 			showNavigatonPaths: false,
@@ -67,30 +68,6 @@
 
 		init();
 
-		window.requestIdleCallback = window.requestIdleCallback || function(handler) {
-			let startTime = Date.now();
-
-			return setTimeout(function() {
-				handler({
-					didTimeout: false,
-					timeRemaining: function() {
-						return Math.max(0, 50.0 - (Date.now() - startTime));
-					}
-				});
-			}, 1);
-		};
-		window.cancelIdleCallback = window.cancelIdleCallback ||
-			function (id) {
-				clearTimeout(id);
-			};
-
-		function idleWork (deadline) {
-			while (deadline.timeRemaining() > 0 )
-				pathPlanner.doWork(deadline.timeRemaining()|0); //get int of double
-
-			requestIdleCallback(idleWork);
-		}
-
 		function init() {
 
 			scene = new THREE.Scene();
@@ -102,7 +79,7 @@
 			//
 
 			const pathMaterial = new THREE.LineBasicMaterial( { color: 0xff0000 } );
-			pathPlanner = new YUKA.PathPlanner();
+			pathPlanner = new YUKA.PathPlanner(taskQueue);
 
 			//
 
@@ -265,14 +242,12 @@
 
 				pathPlanner.navMesh = navigationMesh;
 
-				requestIdleCallback(idleWork);
-
 				//
 
 				animate();
 
 				setInterval( function (  ) {
-					console.log(pathPlanner.array.length);
+					console.log(pathPlanner.newRequests.length);
 
 					for ( let i = 0, l = vehicles.length; i < l; i ++ ) {
 
@@ -359,6 +334,7 @@
 				const delta = time.update().getDelta();
 
 				entityManager.update( delta );
+				taskQueue.update();
 
 				//
 

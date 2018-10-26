@@ -64,4 +64,9 @@ export { SphericalTriggerRegion } from './trigger/regions/SphericalTriggerRegion
 export { TriggerRegion } from './trigger/TriggerRegion.js';
 export { Trigger } from './trigger/Trigger.js';
 export { PathPlanner } from './graph/PathPlanner.js';
+export { Task } from './task/Task.js';
+export { TaskQueue } from './task/TaskQueue';
+export { TaskType } from './task/TaskType';
+export { TaskPathPlanner } from './task/TaskPathPlanner';
+
 export * from './constants.js';
