@@ -7283,6 +7283,12 @@ class Task {
 	resolve() {
 	}
 
+	executeWorker( array ) {
+
+		this.taskType.post( this.taskType.tasksToData( array ) );
+
+	}
+
 }
 
 /**
@@ -7331,8 +7337,6 @@ class TaskType {
 		this.activeRequest = new Map();
 		this.nextId = 0;
 
-		this.worker = new Worker( path );
-
 		this.newRequests = new Array();
 
 		this.taskQueue = taskQueue;
@@ -7348,7 +7352,6 @@ class TaskType {
 
 		}
 		this.useWorker = false;
-		this.init();//???
 
 	}
 
@@ -7359,6 +7362,7 @@ class TaskType {
 
 			const f32Array = new Float32Array( event.data.buffer );
 			this.resolvePromises( f32Array );
+			//todo use window.requestIdleCallback
 
 		} );
 
@@ -7366,7 +7370,7 @@ class TaskType {
 
 	}
 
-	post() {
+	post( array ) {
 		//send data to worker
 	}
 
@@ -7409,9 +7413,25 @@ class TaskType {
 
 	}
 
-	resolvePromises() {
+	resolvePromises( f32Array ) {
 		//resolvePromises used for worker
 	}
+
+	tasksToData( tasks ) {
+
+		const dataArray = new Array();
+		const l = tasks.length;
+		for ( let i = 0; i < l; i ++ ) {
+
+			const task = tasks[ i ];
+			dataArray.push( task.requestId, task.from.x, task.from.y, task.from.z, task.to.x, task.to.y, task.to.z );
+
+		}
+
+		return dataArray;
+
+	}
+
 
 }
 
@@ -7435,18 +7455,7 @@ class PathPlanner extends TaskType {
 		const requestId = this.nextId;
 		const promise = this.createPromise();
 
-
-		if ( this.useWorker ) {
-
-			this.array.push( requestId, from.x, from.y, from.z, to.x, to.y, to.z );
-
-		} else {
-
-			this.taskQueue.enqueue( new TaskPathPlanner( requestId, from, to, this ) );
-
-		}
-
-		//this.worker.postMessage( { op: 'search', requestId: requestId, from: f, to: t } );
+		this.taskQueue.enqueue( new TaskPathPlanner( requestId, from, to, this ) );
 
 		return promise;
 
@@ -7455,37 +7464,6 @@ class PathPlanner extends TaskType {
 	findPathX( requestId, from, to ) {
 
 		return this.navMesh.findPath( from, to );
-
-	}
-
-	post() {
-
-		const f = new Float32Array( this.array );
-		const buffer = f.buffer;
-		//this.array.length = 0;
-		this.worker.postMessage( { op: 'searches', buffer: buffer }, [ buffer ] );
-		/*console.time( 'main' );
-		this.findPaths(); //for performance
-		console.timeEnd( 'main' );*/
-		this.array.length = 0;
-
-	}
-
-	doWork( count = - 1 ) {
-
-		if ( this.array.length > 0 ) {
-
-			if ( this.useWorker ) {
-
-				this.post();
-
-			} else {
-
-				this.resolvePromises( this.findPaths( count ) );
-
-			}
-
-		}
 
 	}
 
@@ -7533,6 +7511,16 @@ class PathPlanner extends TaskType {
 	}
 
 
+	post( array ) {
+
+		const f = new Float32Array( array );
+		const buffer = f.buffer;
+		this.worker.postMessage( { op: 'searches', buffer: buffer }, [ buffer ] );
+
+
+
+
+	}
 
 }
 
@@ -7547,6 +7535,13 @@ class TaskQueue {
 		this.active = false;
 		this.handler = runTaskQueue.bind( this );
 		this.taskHandle = 0;
+		this.types = new Array();
+
+	}
+
+	addType( type ) {
+
+		this.types.push( type );
 
 	}
 
@@ -7571,6 +7566,38 @@ class TaskQueue {
 
 	}
 
+	bundel( taskType ) {
+
+		const l = this.tasks.length;
+		const positions = new Array();
+		const bundledTasks = new Array();
+		for ( let i = 0; i < l; i ++ ) {
+
+			if ( this.tasks[ i ].taskType instanceof taskType.constructor ) {
+
+				positions.push( i );
+				bundledTasks.push( this.tasks[ i ] );
+
+			}
+
+		}
+		/*
+		Optimize add rest to an other array
+		don't use push create array with length and set length afterwards
+		 */
+
+		const l2 = positions.length;
+		positions.reverse();
+		for ( let i = 0; i < l2; i ++ ) {
+
+			this.tasks.splice( positions[ i ], 1 );
+
+		}
+
+		return bundledTasks;
+
+	}
+
 }
 
 function runTaskQueue( deadline ) {
@@ -7579,9 +7606,21 @@ function runTaskQueue( deadline ) {
 
 	while ( ( deadline.timeRemaining() > 0 || deadline.didTimeout ) && tasks.length > 0 ) {
 
-		tasks[ 0 ].execute();
+		const task = tasks[ 0 ];
 
-		tasks.shift();
+		if ( task.taskType.useWorker ) {
+
+			task.executeWorker( this.bundel( task.taskType ) );
+
+		} else {
+
+			task.execute();
+
+			tasks.shift();
+
+		}
+
+
 
 	}
 

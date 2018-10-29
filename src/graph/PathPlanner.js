@@ -23,18 +23,7 @@ class PathPlanner extends TaskType {
 		const requestId = this.nextId;
 		const promise = this.createPromise();
 
-
-		if ( this.useWorker ) {
-
-			this.array.push( requestId, from.x, from.y, from.z, to.x, to.y, to.z );
-
-		} else {
-
-			this.taskQueue.enqueue( new TaskPathPlanner( requestId, from, to, this ) );
-
-		}
-
-		//this.worker.postMessage( { op: 'search', requestId: requestId, from: f, to: t } );
+		this.taskQueue.enqueue( new TaskPathPlanner( requestId, from, to, this ) );
 
 		return promise;
 
@@ -43,37 +32,6 @@ class PathPlanner extends TaskType {
 	findPathX( requestId, from, to ) {
 
 		return this.navMesh.findPath( from, to );
-
-	}
-
-	post() {
-
-		const f = new Float32Array( this.array );
-		const buffer = f.buffer;
-		//this.array.length = 0;
-		this.worker.postMessage( { op: 'searches', buffer: buffer }, [ buffer ] );
-		/*console.time( 'main' );
-		this.findPaths(); //for performance
-		console.timeEnd( 'main' );*/
-		this.array.length = 0;
-
-	}
-
-	doWork( count = - 1 ) {
-
-		if ( this.array.length > 0 ) {
-
-			if ( this.useWorker ) {
-
-				this.post();
-
-			} else {
-
-				this.resolvePromises( this.findPaths( count ) );
-
-			}
-
-		}
 
 	}
 
@@ -121,8 +79,17 @@ class PathPlanner extends TaskType {
 	}
 
 
+	post( array ) {
+
+		const f = new Float32Array( array );
+		const buffer = f.buffer;
+		this.worker.postMessage( { op: 'searches', buffer: buffer }, [ buffer ] );
+
+
+
+
+	}
 
 }
-
 
 export { PathPlanner };

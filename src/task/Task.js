@@ -20,6 +20,12 @@ class Task {
 	resolve() {
 	}
 
+	executeWorker( array ) {
+
+		this.taskType.post( this.taskType.tasksToData( array ) );
+
+	}
+
 }
 
 

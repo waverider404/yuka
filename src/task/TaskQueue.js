@@ -9,6 +9,13 @@ class TaskQueue {
 		this.active = false;
 		this.handler = runTaskQueue.bind( this );
 		this.taskHandle = 0;
+		this.types = new Array();
+
+	}
+
+	addType( type ) {
+
+		this.types.push( type );
 
 	}
 
@@ -33,6 +40,38 @@ class TaskQueue {
 
 	}
 
+	bundel( taskType ) {
+
+		const l = this.tasks.length;
+		const positions = new Array();
+		const bundledTasks = new Array();
+		for ( let i = 0; i < l; i ++ ) {
+
+			if ( this.tasks[ i ].taskType instanceof taskType.constructor ) {
+
+				positions.push( i );
+				bundledTasks.push( this.tasks[ i ] );
+
+			}
+
+		}
+		/*
+		Optimize add rest to an other array
+		don't use push create array with length and set length afterwards
+		 */
+
+		const l2 = positions.length;
+		positions.reverse();
+		for ( let i = 0; i < l2; i ++ ) {
+
+			this.tasks.splice( positions[ i ], 1 );
+
+		}
+
+		return bundledTasks;
+
+	}
+
 }
 
 function runTaskQueue( deadline ) {
@@ -41,9 +80,21 @@ function runTaskQueue( deadline ) {
 
 	while ( ( deadline.timeRemaining() > 0 || deadline.didTimeout ) && tasks.length > 0 ) {
 
-		tasks[ 0 ].execute();
+		const task = tasks[ 0 ];
 
-		tasks.shift();
+		if ( task.taskType.useWorker ) {
+
+			task.executeWorker( this.bundel( task.taskType ) );
+
+		} else {
+
+			task.execute();
+
+			tasks.shift();
+
+		}
+
+
 
 	}
 

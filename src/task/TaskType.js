@@ -13,8 +13,6 @@ class TaskType {
 		this.activeRequest = new Map();
 		this.nextId = 0;
 
-		this.worker = new Worker( path );
-
 		this.newRequests = new Array();
 
 		this.taskQueue = taskQueue;
@@ -30,7 +28,6 @@ class TaskType {
 
 		}
 		this.useWorker = false;
-		this.init();//???
 
 	}
 
@@ -41,6 +38,7 @@ class TaskType {
 
 			const f32Array = new Float32Array( event.data.buffer );
 			this.resolvePromises( f32Array );
+			//todo use window.requestIdleCallback
 
 		} );
 
@@ -48,7 +46,7 @@ class TaskType {
 
 	}
 
-	post() {
+	post( array ) {
 		//send data to worker
 	}
 
@@ -91,9 +89,25 @@ class TaskType {
 
 	}
 
-	resolvePromises() {
+	resolvePromises( f32Array ) {
 		//resolvePromises used for worker
 	}
+
+	tasksToData( tasks ) {
+
+		const dataArray = new Array();
+		const l = tasks.length;
+		for ( let i = 0; i < l; i ++ ) {
+
+			const task = tasks[ i ];
+			dataArray.push( task.requestId, task.from.x, task.from.y, task.from.z, task.to.x, task.to.y, task.to.z );
+
+		}
+
+		return dataArray;
+
+	}
+
 
 }
 export { TaskType };
