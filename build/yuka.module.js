@@ -11559,4 +11559,271 @@ class Trigger {
 
 }
 
-export { EntityManager, EventDispatcher, GameEntity, Logger, MeshGeometry, MessageDispatcher, MovingEntity, Regulator, Time, Telegram, State, StateMachine, CompositeGoal, Goal, GoalEvaluator, Think, Edge, Graph, Node, PriorityQueue, AStar, BFS, DFS, Dijkstra, AABB, BoundingSphere, LineSegment, MathUtils, Matrix3, Matrix4, Plane, Quaternion, Ray, Vector3, NavEdge, NavNode, GraphUtils, Corridor, HalfEdge, NavMesh, NavMeshLoader, Polygon, Cell, CellSpacePartitioning, MemoryRecord, MemorySystem, Obstacle, Vision, Path, Smoother, SteeringBehavior, SteeringManager, Vehicle, AlignmentBehavior, ArriveBehavior, CohesionBehavior, EvadeBehavior, FleeBehavior, FollowPathBehavior, InterposeBehavior, ObstacleAvoidanceBehavior, PursuitBehavior, SeekBehavior, SeparationBehavior, WanderBehavior, Task, TaskQueue, RectangularTriggerRegion, SphericalTriggerRegion, TriggerRegion, Trigger, HeuristicPolicyEuclid, HeuristicPolicyEuclidSquared, HeuristicPolicyManhatten, HeuristicPolicyDijkstra, WorldUp };
+/**
+ * @author robp94 / https://github.com/robp94
+ */
+
+class TTTNode extends Node {
+
+	constructor( index, field = [ new Array( 3 ), new Array( 3 ), new Array( 3 ) ] ) {
+
+		super( index );
+		this.field = field;
+		//undefined empty, 0 player 1, 1 player 2
+		this.filled = this.countFilledFields();
+		this.value = 999999999;
+
+	}
+
+	countFilledFields() {
+
+		let count = 0;
+
+		for ( let i = 0; i < 3; i ++ ) {
+
+			for ( let j = 0; j < 3; j ++ ) {
+
+				if ( typeof this.field[ i ][ j ] !== "undefined" ) {
+
+					count ++;
+
+				}
+
+			}
+
+		}
+		return count;
+
+	}
+
+	countEmptyFields() {
+
+		return 9 - this.countFilledFields();
+
+	}
+
+	setValue() {
+
+		let s = "";
+		for ( let i = 0; i < 3; i ++ ) {
+
+			for ( let j = 0; j < 3; j ++ ) {
+
+				if ( typeof this.field[ i ][ j ] !== 'undefined' ) {
+
+					const x = this.field[ i ][ j ];
+					s = s + x;
+
+				} else {
+
+					s = s + "9";
+
+				}
+
+			}
+
+		}
+		this.value = parseInt( s, 10 );
+
+	}
+
+	getNextTurn( x, y, player ) {
+
+		const array = [ new Array( 3 ), new Array( 3 ), new Array( 3 ) ];
+		for ( let i = 0; i < 3; i ++ ) {
+
+			for ( let j = 0; j < 3; j ++ ) {
+
+				array[ i ][ j ] = this.field[ i ][ j ];
+
+			}
+
+		}
+		array[ x ][ y ] = player;
+		return array;
+
+	}
+
+	print() {
+
+		let s = "";
+
+		for ( let i = 0; i < 3; i ++ ) {
+
+			s = s + '[';
+
+			for ( let j = 0; j < 3; j ++ ) {
+
+				if ( typeof this.field[ i ][ j ] === "undefined" ) {
+
+					s = s + " ";
+
+				} else {
+
+					s = s + this.field[ i ][ j ];
+
+				}
+
+			}
+			s = s + ']\n';
+
+		}
+		console.log( s );
+
+	}
+
+}
+
+/**
+ * @author robp94 / https://github.com/robp94
+ */
+
+class TTTEdge extends Edge {
+
+	constructor( from, to, x, y, player ) {
+
+		super( from, to );
+		this.x = x;
+		this.y = y;
+		this.player = player;
+
+	}
+
+}
+
+/**
+ * @author robp94 / https://github.com/robp94
+ */
+
+class TTTGraph extends Graph {
+
+	constructor() {
+
+		super();
+		this.lookUp = new Map();
+		this.currentNode = - 1;
+		this.nextNode = 0;
+		this.digraph = true;
+		this.nodesFind = [];
+		this.arrayTurn = [];
+		this.init( 1 );
+
+	}
+
+	init( firstPlayer ) {
+
+		const node = new TTTNode( this.nextNode ++ );
+		this.addNode( node );
+		this.initRec( node.index, firstPlayer, 0 );
+
+	}
+	addNode( node ) {
+
+		node.setValue();
+		this.lookUp.set( node.value, node.index );
+		return super.addNode( node );
+
+	}
+
+	initRec( preNodeIndex, activePlayer, count ) {
+
+		const preNode = this.getNode( preNodeIndex );
+
+		for ( let i = 0; i < 3; i ++ ) {
+
+			for ( let j = 0; j < 3; j ++ ) {
+
+				if ( typeof preNode.field[ i ][ j ] === "undefined" ) {
+
+					const nextField = preNode.getNextTurn( i, j, activePlayer );
+					let activeNode = this.findNode( nextField );
+					if ( activeNode === - 1 ) {
+
+						const node = new TTTNode( this.nextNode ++, nextField );
+						this.addNode( node );
+						activeNode = node.index;
+						const edge = new TTTEdge( preNodeIndex, activeNode, i, j, activePlayer );
+						this.addEdge( edge );
+						if ( count < 8 ) {
+
+							this.initRec( activeNode, ( activePlayer % 2 ) + 1, count + 1 );
+
+						}
+
+					} else {
+
+						const edge = new TTTEdge( preNodeIndex, activeNode, i, j, activePlayer );
+						this.addEdge( edge );
+
+					}
+
+				}
+
+			}
+
+		}
+
+	}
+
+	findNode( array ) {
+
+		const value = this.fieldToValue( array );
+		const node = this.lookUp.get( value );
+		if ( typeof node === "undefined" ) {
+
+			return - 1;
+
+		} else {
+
+			return node;
+
+		}
+
+	}
+
+	fieldToValue( field ) {
+
+		let s = "";
+		for ( let i = 0; i < 3; i ++ ) {
+
+			for ( let j = 0; j < 3; j ++ ) {
+
+				if ( typeof field[ i ][ j ] !== 'undefined' ) {
+
+					const x = field[ i ][ j ];
+					s = s + x;
+
+				} else {
+
+					s = s + "9";
+
+				}
+
+			}
+
+		}
+		return parseInt( s, 10 );
+
+	}
+
+	turn( x, y, player ) {
+
+		this.arrayTurn = [];
+		this.getEdgesOfNode( this.currentNode, this.arrayTurn );
+		for ( let i = 0; i < this.arrayTurn.length; i ++ ) {
+
+			const edge = this.arrayTurn[ i ];
+			if ( edge.x === x && edge.y === y && edge.player === player ) {
+
+				this.currentNode = edge.to;
+				break;
+
+			}
+
+		}
+
+	}
+
+}
+
+export { EntityManager, EventDispatcher, GameEntity, Logger, MeshGeometry, MessageDispatcher, MovingEntity, Regulator, Time, Telegram, State, StateMachine, CompositeGoal, Goal, GoalEvaluator, Think, Edge, Graph, Node, PriorityQueue, AStar, BFS, DFS, Dijkstra, AABB, BoundingSphere, LineSegment, MathUtils, Matrix3, Matrix4, Plane, Quaternion, Ray, Vector3, NavEdge, NavNode, GraphUtils, Corridor, HalfEdge, NavMesh, NavMeshLoader, Polygon, Cell, CellSpacePartitioning, MemoryRecord, MemorySystem, Obstacle, Vision, Path, Smoother, SteeringBehavior, SteeringManager, Vehicle, AlignmentBehavior, ArriveBehavior, CohesionBehavior, EvadeBehavior, FleeBehavior, FollowPathBehavior, InterposeBehavior, ObstacleAvoidanceBehavior, PursuitBehavior, SeekBehavior, SeparationBehavior, WanderBehavior, Task, TaskQueue, RectangularTriggerRegion, SphericalTriggerRegion, TriggerRegion, Trigger, TTTNode, TTTEdge, TTTGraph, HeuristicPolicyEuclid, HeuristicPolicyEuclidSquared, HeuristicPolicyManhatten, HeuristicPolicyDijkstra, WorldUp };

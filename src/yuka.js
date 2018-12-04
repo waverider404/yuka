@@ -70,4 +70,7 @@ export { RectangularTriggerRegion } from './trigger/regions/RectangularTriggerRe
 export { SphericalTriggerRegion } from './trigger/regions/SphericalTriggerRegion.js';
 export { TriggerRegion } from './trigger/TriggerRegion.js';
 export { Trigger } from './trigger/Trigger.js';
+export { TTTNode } from './graph/TTTNode.js';
+export { TTTEdge } from './graph/TTTEdge.js';
+export { TTTGraph } from './graph/TTTGraph.js';
 export * from './constants.js';

@@ -1,0 +1,72 @@
+<html lang="en">
+<head>
+    <title>Yuka | State-driven Agent Design</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="../../lib/styles.css">
+    <style>
+        #status {
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: #ffffff;
+            text-align: center;
+            line-height: 20px;
+            width: 100%;
+            bottom: 0;
+        }
+        #status>div {
+            background-color: #282828;
+            width: 250px;
+            padding: 16px;
+        }
+        #status>div>span {
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+
+
+
+<section id="info">
+    <p>
+        The game entity continuously changes its status between "IDLE" and "WALK".<br/>
+        The State-driven agent design enables a clean implementation of basic AI logic.
+    </p>
+</section>
+
+<section id="status">
+    <div>
+        <span>Current State:</span>
+        <span id="currentState"></span>
+    </div>
+</section>
+
+<script type="module">
+
+	import * as YUKA from '../../../build/yuka.module.js';
+	import * as THREE from '../../lib/three.module.js';
+
+
+
+
+	let camera, scene, renderer, target = new THREE.Vector3();
+
+	let entityManager, time;
+
+	init();
+
+	function init() {
+
+		const graph = new YUKA.TTTGraph();
+		console.log( graph._nodes.size );
+
+	}
+
+</script>
+
+</body>
+</html>
