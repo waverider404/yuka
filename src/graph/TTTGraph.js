@@ -17,6 +17,7 @@ class TTTGraph extends Graph {
 		this.digraph = true;
 		this.nodesFind = [];
 		this.arrayTurn = [];
+		this.currentPlayer = 1;
 		this.init( 1 );
 
 	}
@@ -26,6 +27,7 @@ class TTTGraph extends Graph {
 		const node = new TTTNode( this.nextNode ++ );
 		this.addNode( node );
 		this.initRec( node.index, firstPlayer, 0 );
+		this.currentNode = node.index;
 
 	}
 	addNode( node ) {
@@ -44,7 +46,7 @@ class TTTGraph extends Graph {
 
 			for ( let j = 0; j < 3; j ++ ) {
 
-				if ( typeof preNode.field[ i ][ j ] === "undefined" ) {
+				if ( preNode.field[ i ][ j ] === 9 ) {
 
 					const nextField = preNode.getNextTurn( i, j, activePlayer );
 					let activeNode = this.findNode( nextField );
@@ -55,9 +57,9 @@ class TTTGraph extends Graph {
 						activeNode = node.index;
 						const edge = new TTTEdge( preNodeIndex, activeNode, i, j, activePlayer );
 						this.addEdge( edge );
-						if ( count < 8 ) {
+						if ( ! node.isWin && count < 8 ) {
 
-							this.initRec( activeNode, ( activePlayer % 2 ) + 1, count + 1 );
+							this.initRec( activeNode, this.nextPlayer( activePlayer ), count + 1 );
 
 						}
 
@@ -76,11 +78,17 @@ class TTTGraph extends Graph {
 
 	}
 
+	nextPlayer( currentPlayer ) {
+
+		return ( currentPlayer % 2 ) + 1;
+
+	}
+
 	findNode( array ) {
 
 		const value = this.fieldToValue( array );
 		const node = this.lookUp.get( value );
-		if ( typeof node === "undefined" ) {
+		if ( typeof node === 'undefined' ) {
 
 			return - 1;
 
@@ -99,7 +107,7 @@ class TTTGraph extends Graph {
 
 			for ( let j = 0; j < 3; j ++ ) {
 
-				if ( typeof field[ i ][ j ] !== 'undefined' ) {
+				if ( field[ i ][ j ] !== 9 ) {
 
 					const x = field[ i ][ j ];
 					s = s + x;
@@ -124,9 +132,10 @@ class TTTGraph extends Graph {
 		for ( let i = 0; i < this.arrayTurn.length; i ++ ) {
 
 			const edge = this.arrayTurn[ i ];
-			if ( edge.x === x && edge.y === y && edge.player === player ) {
+			if ( edge.x == x && edge.y == y && edge.player === player ) {
 
 				this.currentNode = edge.to;
+				this.currentPlayer = this.nextPlayer( player );
 				break;
 
 			}

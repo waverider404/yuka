@@ -6,13 +6,15 @@ import { Node } from "./core/Node";
 
 class TTTNode extends Node {
 
-	constructor( index, field = [ new Array( 3 ), new Array( 3 ), new Array( 3 ) ] ) {
+	constructor( index, field = [[ 9, 9, 9 ], [ 9, 9, 9 ], [ 9, 9, 9 ]] ) {
 
 		super( index );
 		this.field = field;
-		//undefined empty, 0 player 1, 1 player 2
+		//9 empty, 1 player 1, 2 player 2
 		this.filled = this.countFilledFields();
 		this.value = 999999999;
+		this.winPlayer = this.win();
+		this.isWin = ( this.winPlayer !== - 1 );
 
 	}
 
@@ -24,7 +26,7 @@ class TTTNode extends Node {
 
 			for ( let j = 0; j < 3; j ++ ) {
 
-				if ( typeof this.field[ i ][ j ] !== "undefined" ) {
+				if ( this.field[ i ][ j ] !== 9 ) {
 
 					count ++;
 
@@ -50,7 +52,7 @@ class TTTNode extends Node {
 
 			for ( let j = 0; j < 3; j ++ ) {
 
-				if ( typeof this.field[ i ][ j ] !== 'undefined' ) {
+				if ( this.field[ i ][ j ] !== 9 ) {
 
 					const x = this.field[ i ][ j ];
 					s = s + x;
@@ -95,7 +97,7 @@ class TTTNode extends Node {
 
 			for ( let j = 0; j < 3; j ++ ) {
 
-				if ( typeof this.field[ i ][ j ] === "undefined" ) {
+				if ( this.field[ i ][ j ] === 9 ) {
 
 					s = s + " ";
 
@@ -112,6 +114,68 @@ class TTTNode extends Node {
 		console.log( s );
 
 	}
+
+
+
+	win() {
+
+		//horizontal
+		if ( [ this.field[ 0 ][ 0 ], this.field[ 0 ][ 1 ], this.field[ 0 ][ 2 ] ].every( condition ) ) {
+
+			return this.field[ 0 ][ 0 ];
+
+		}
+
+		if ( [ this.field[ 1 ][ 0 ], this.field[ 1 ][ 1 ], this.field[ 1 ][ 2 ] ].every( condition ) ) {
+
+			return this.field[ 1 ][ 0 ];
+
+		}
+		if ( [ this.field[ 2 ][ 0 ], this.field[ 2 ][ 1 ], this.field[ 2 ][ 2 ] ].every( condition ) ) {
+
+			return this.field[ 2 ][ 0 ];
+
+		}
+		//vertical
+		if ( [ this.field[ 0 ][ 0 ], this.field[ 1 ][ 0 ], this.field[ 2 ][ 0 ] ].every( condition ) ) {
+
+			return this.field[ 0 ][ 0 ];
+
+		}
+		if ( [ this.field[ 0 ][ 1 ], this.field[ 1 ][ 1 ], this.field[ 2 ][ 1 ] ].every( condition ) ) {
+
+			return this.field[ 0 ][ 1 ];
+
+		}
+		if ( [ this.field[ 0 ][ 2 ], this.field[ 1 ][ 2 ], this.field[ 2 ][ 2 ] ].every( condition ) ) {
+
+			return this.field[ 0 ][ 2 ];
+
+		}
+		//diagonal
+		if ( [ this.field[ 0 ][ 0 ], this.field[ 1 ][ 1 ], this.field[ 2 ][ 2 ] ].every( condition ) ) {
+
+			return this.field[ 0 ][ 0 ];
+
+		}
+		if ( [ this.field[ 2 ][ 0 ], this.field[ 1 ][ 1 ], this.field[ 0 ][ 2 ] ].every( condition ) ) {
+
+			return this.field[ 0 ][ 2 ];
+
+		}
+
+		return - 1;
+
+	}
+
+}
+
+function condition( v, i, a ) {
+
+	return (
+		a[ i ] === a[ 0 ] &&
+		a[ i ] !== 9
+	);
 
 }
 

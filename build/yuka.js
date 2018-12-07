@@ -11571,13 +11571,15 @@
 
 	class TTTNode extends Node {
 
-		constructor( index, field = [ new Array( 3 ), new Array( 3 ), new Array( 3 ) ] ) {
+		constructor( index, field = [[ 9, 9, 9 ], [ 9, 9, 9 ], [ 9, 9, 9 ]] ) {
 
 			super( index );
 			this.field = field;
-			//undefined empty, 0 player 1, 1 player 2
+			//9 empty, 1 player 1, 2 player 2
 			this.filled = this.countFilledFields();
 			this.value = 999999999;
+			this.winPlayer = this.win();
+			this.isWin = ( this.winPlayer !== - 1 );
 
 		}
 
@@ -11589,7 +11591,7 @@
 
 				for ( let j = 0; j < 3; j ++ ) {
 
-					if ( typeof this.field[ i ][ j ] !== "undefined" ) {
+					if ( this.field[ i ][ j ] !== 9 ) {
 
 						count ++;
 
@@ -11615,7 +11617,7 @@
 
 				for ( let j = 0; j < 3; j ++ ) {
 
-					if ( typeof this.field[ i ][ j ] !== 'undefined' ) {
+					if ( this.field[ i ][ j ] !== 9 ) {
 
 						const x = this.field[ i ][ j ];
 						s = s + x;
@@ -11660,7 +11662,7 @@
 
 				for ( let j = 0; j < 3; j ++ ) {
 
-					if ( typeof this.field[ i ][ j ] === "undefined" ) {
+					if ( this.field[ i ][ j ] === 9 ) {
 
 						s = s + " ";
 
@@ -11677,6 +11679,68 @@
 			console.log( s );
 
 		}
+
+
+
+		win() {
+
+			//horizontal
+			if ( [ this.field[ 0 ][ 0 ], this.field[ 0 ][ 1 ], this.field[ 0 ][ 2 ] ].every( condition ) ) {
+
+				return this.field[ 0 ][ 0 ];
+
+			}
+
+			if ( [ this.field[ 1 ][ 0 ], this.field[ 1 ][ 1 ], this.field[ 1 ][ 2 ] ].every( condition ) ) {
+
+				return this.field[ 1 ][ 0 ];
+
+			}
+			if ( [ this.field[ 2 ][ 0 ], this.field[ 2 ][ 1 ], this.field[ 2 ][ 2 ] ].every( condition ) ) {
+
+				return this.field[ 2 ][ 0 ];
+
+			}
+			//vertical
+			if ( [ this.field[ 0 ][ 0 ], this.field[ 1 ][ 0 ], this.field[ 2 ][ 0 ] ].every( condition ) ) {
+
+				return this.field[ 0 ][ 0 ];
+
+			}
+			if ( [ this.field[ 0 ][ 1 ], this.field[ 1 ][ 1 ], this.field[ 2 ][ 1 ] ].every( condition ) ) {
+
+				return this.field[ 0 ][ 1 ];
+
+			}
+			if ( [ this.field[ 0 ][ 2 ], this.field[ 1 ][ 2 ], this.field[ 2 ][ 2 ] ].every( condition ) ) {
+
+				return this.field[ 0 ][ 2 ];
+
+			}
+			//diagonal
+			if ( [ this.field[ 0 ][ 0 ], this.field[ 1 ][ 1 ], this.field[ 2 ][ 2 ] ].every( condition ) ) {
+
+				return this.field[ 0 ][ 0 ];
+
+			}
+			if ( [ this.field[ 2 ][ 0 ], this.field[ 1 ][ 1 ], this.field[ 0 ][ 2 ] ].every( condition ) ) {
+
+				return this.field[ 0 ][ 2 ];
+
+			}
+
+			return - 1;
+
+		}
+
+	}
+
+	function condition( v, i, a ) {
+
+		return (
+			a[ i ] === a[ 0 ] &&
+			a[ i ] !== 9
+		);
 
 	}
 
@@ -11712,6 +11776,7 @@
 			this.digraph = true;
 			this.nodesFind = [];
 			this.arrayTurn = [];
+			this.currentPlayer = 1;
 			this.init( 1 );
 
 		}
@@ -11721,6 +11786,7 @@
 			const node = new TTTNode( this.nextNode ++ );
 			this.addNode( node );
 			this.initRec( node.index, firstPlayer, 0 );
+			this.currentNode = node.index;
 
 		}
 		addNode( node ) {
@@ -11739,7 +11805,7 @@
 
 				for ( let j = 0; j < 3; j ++ ) {
 
-					if ( typeof preNode.field[ i ][ j ] === "undefined" ) {
+					if ( preNode.field[ i ][ j ] === 9 ) {
 
 						const nextField = preNode.getNextTurn( i, j, activePlayer );
 						let activeNode = this.findNode( nextField );
@@ -11750,9 +11816,9 @@
 							activeNode = node.index;
 							const edge = new TTTEdge( preNodeIndex, activeNode, i, j, activePlayer );
 							this.addEdge( edge );
-							if ( count < 8 ) {
+							if ( ! node.isWin && count < 8 ) {
 
-								this.initRec( activeNode, ( activePlayer % 2 ) + 1, count + 1 );
+								this.initRec( activeNode, this.nextPlayer( activePlayer ), count + 1 );
 
 							}
 
@@ -11771,11 +11837,17 @@
 
 		}
 
+		nextPlayer( currentPlayer ) {
+
+			return ( currentPlayer % 2 ) + 1;
+
+		}
+
 		findNode( array ) {
 
 			const value = this.fieldToValue( array );
 			const node = this.lookUp.get( value );
-			if ( typeof node === "undefined" ) {
+			if ( typeof node === 'undefined' ) {
 
 				return - 1;
 
@@ -11794,7 +11866,7 @@
 
 				for ( let j = 0; j < 3; j ++ ) {
 
-					if ( typeof field[ i ][ j ] !== 'undefined' ) {
+					if ( field[ i ][ j ] !== 9 ) {
 
 						const x = field[ i ][ j ];
 						s = s + x;
@@ -11819,9 +11891,10 @@
 			for ( let i = 0; i < this.arrayTurn.length; i ++ ) {
 
 				const edge = this.arrayTurn[ i ];
-				if ( edge.x === x && edge.y === y && edge.player === player ) {
+				if ( edge.x == x && edge.y == y && edge.player === player ) {
 
 					this.currentNode = edge.to;
+					this.currentPlayer = this.nextPlayer( player );
 					break;
 
 				}
