@@ -69,13 +69,11 @@
 
 			graph.getNode( graph.currentNode ).print();
 			const input = prompt( "Please Enter x and y coordinate for Player:" + graph.currentPlayer );
-			const xy = input.split( " " );
-			const x = xy[ 0 ];
-			const y = xy[ 1 ];
-			console.log( x );
-			console.log( y );
 
-			graph.turn( x, y, graph.currentPlayer );
+			console.log( input );
+
+
+			graph.turn( input, graph.currentPlayer );
 			const nextNode = graph.getNode( graph.currentNode );
 			if ( nextNode.isWin ) {
 

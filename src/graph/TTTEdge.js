@@ -5,11 +5,10 @@ import { Edge } from "./core/Edge";
 
 class TTTEdge extends Edge {
 
-	constructor( from, to, x, y, player ) {
+	constructor( from, to, cell, player ) {
 
 		super( from, to );
-		this.x = x;
-		this.y = y;
+		this.cell = cell;
 		this.player = player;
 
 	}

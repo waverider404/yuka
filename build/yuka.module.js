@@ -11565,7 +11565,12 @@ class Trigger {
 
 class TTTNode extends Node {
 
-	constructor( index, field = [[ 9, 9, 9 ], [ 9, 9, 9 ], [ 9, 9, 9 ]] ) {
+
+	// x	x	x 	0	1	2
+	// x	x	x	3	4	5
+	// x	x	x	6	7	8
+
+	constructor( index, field = [ 9, 9, 9, 9, 9, 9, 9, 9, 9 ] ) {
 
 		super( index );
 		this.field = field;
@@ -11581,15 +11586,11 @@ class TTTNode extends Node {
 
 		let count = 0;
 
-		for ( let i = 0; i < 3; i ++ ) {
+		for ( let i = 0; i < 9; i ++ ) {
 
-			for ( let j = 0; j < 3; j ++ ) {
+			if ( this.field[ i ] !== 9 ) {
 
-				if ( this.field[ i ][ j ] !== 9 ) {
-
-					count ++;
-
-				}
+				count ++;
 
 			}
 
@@ -11607,20 +11608,16 @@ class TTTNode extends Node {
 	setValue() {
 
 		let s = "";
-		for ( let i = 0; i < 3; i ++ ) {
+		for ( let i = 0; i < 9; i ++ ) {
 
-			for ( let j = 0; j < 3; j ++ ) {
+			if ( this.field[ i ] !== 9 ) {
 
-				if ( this.field[ i ][ j ] !== 9 ) {
+				const x = this.field[ i ];
+				s = s + x;
 
-					const x = this.field[ i ][ j ];
-					s = s + x;
+			} else {
 
-				} else {
-
-					s = s + "9";
-
-				}
+				s = s + "9";
 
 			}
 
@@ -11629,19 +11626,15 @@ class TTTNode extends Node {
 
 	}
 
-	getNextTurn( x, y, player ) {
+	getNextTurn( cell, player ) {
 
-		const array = [ new Array( 3 ), new Array( 3 ), new Array( 3 ) ];
-		for ( let i = 0; i < 3; i ++ ) {
+		const array = new Array( 9 );
+		for ( let i = 0; i < 9; i ++ ) {
 
-			for ( let j = 0; j < 3; j ++ ) {
-
-				array[ i ][ j ] = this.field[ i ][ j ];
-
-			}
+			array[ i ] = this.field[ i ];
 
 		}
-		array[ x ][ y ] = player;
+		array[ cell ] = player;
 		return array;
 
 	}
@@ -11656,13 +11649,13 @@ class TTTNode extends Node {
 
 			for ( let j = 0; j < 3; j ++ ) {
 
-				if ( this.field[ i ][ j ] === 9 ) {
+				if ( this.field[ i * 3 + j ] === 9 ) {
 
 					s = s + " ";
 
 				} else {
 
-					s = s + this.field[ i ][ j ];
+					s = s + this.field[ i * 3 + j ];
 
 				}
 
@@ -11678,48 +11671,49 @@ class TTTNode extends Node {
 
 	win() {
 
+
 		//horizontal
-		if ( [ this.field[ 0 ][ 0 ], this.field[ 0 ][ 1 ], this.field[ 0 ][ 2 ] ].every( condition ) ) {
+		if ( [ this.field[ 0 ], this.field[ 1 ], this.field[ 2 ] ].every( condition ) ) {
 
-			return this.field[ 0 ][ 0 ];
-
-		}
-
-		if ( [ this.field[ 1 ][ 0 ], this.field[ 1 ][ 1 ], this.field[ 1 ][ 2 ] ].every( condition ) ) {
-
-			return this.field[ 1 ][ 0 ];
+			return this.field[ 0 ];
 
 		}
-		if ( [ this.field[ 2 ][ 0 ], this.field[ 2 ][ 1 ], this.field[ 2 ][ 2 ] ].every( condition ) ) {
 
-			return this.field[ 2 ][ 0 ];
+		if ( [ this.field[ 3 ], this.field[ 4 ], this.field[ 5 ] ].every( condition ) ) {
+
+			return this.field[ 3 ];
+
+		}
+		if ( [ this.field[ 6 ], this.field[ 7 ], this.field[ 8 ] ].every( condition ) ) {
+
+			return this.field[ 6 ];
 
 		}
 		//vertical
-		if ( [ this.field[ 0 ][ 0 ], this.field[ 1 ][ 0 ], this.field[ 2 ][ 0 ] ].every( condition ) ) {
+		if ( [ this.field[ 0 ], this.field[ 3 ], this.field[ 6 ] ].every( condition ) ) {
 
-			return this.field[ 0 ][ 0 ];
-
-		}
-		if ( [ this.field[ 0 ][ 1 ], this.field[ 1 ][ 1 ], this.field[ 2 ][ 1 ] ].every( condition ) ) {
-
-			return this.field[ 0 ][ 1 ];
+			return this.field[ 0 ];
 
 		}
-		if ( [ this.field[ 0 ][ 2 ], this.field[ 1 ][ 2 ], this.field[ 2 ][ 2 ] ].every( condition ) ) {
+		if ( [ this.field[ 1 ], this.field[ 4 ], this.field[ 7 ] ].every( condition ) ) {
 
-			return this.field[ 0 ][ 2 ];
+			return this.field[ 1 ];
+
+		}
+		if ( [ this.field[ 2 ], this.field[ 5 ], this.field[ 8 ] ].every( condition ) ) {
+
+			return this.field[ 2 ];
 
 		}
 		//diagonal
-		if ( [ this.field[ 0 ][ 0 ], this.field[ 1 ][ 1 ], this.field[ 2 ][ 2 ] ].every( condition ) ) {
+		if ( [ this.field[ 0 ], this.field[ 4 ], this.field[ 8 ] ].every( condition ) ) {
 
-			return this.field[ 0 ][ 0 ];
+			return this.field[ 0 ];
 
 		}
-		if ( [ this.field[ 2 ][ 0 ], this.field[ 1 ][ 1 ], this.field[ 0 ][ 2 ] ].every( condition ) ) {
+		if ( [ this.field[ 6 ], this.field[ 4 ], this.field[ 2 ] ].every( condition ) ) {
 
-			return this.field[ 0 ][ 2 ];
+			return this.field[ 6 ];
 
 		}
 
@@ -11744,11 +11738,10 @@ function condition( v, i, a ) {
 
 class TTTEdge extends Edge {
 
-	constructor( from, to, x, y, player ) {
+	constructor( from, to, cell, player ) {
 
 		super( from, to );
-		this.x = x;
-		this.y = y;
+		this.cell = cell;
 		this.player = player;
 
 	}
@@ -11795,33 +11788,29 @@ class TTTGraph extends Graph {
 
 		const preNode = this.getNode( preNodeIndex );
 
-		for ( let i = 0; i < 3; i ++ ) {
+		for ( let i = 0; i < 9; i ++ ) {
 
-			for ( let j = 0; j < 3; j ++ ) {
+			if ( preNode.field[ i ] === 9 ) {
 
-				if ( preNode.field[ i ][ j ] === 9 ) {
+				const nextField = preNode.getNextTurn( i, activePlayer );
+				let activeNode = this.findNode( nextField );
+				if ( activeNode === - 1 ) {
 
-					const nextField = preNode.getNextTurn( i, j, activePlayer );
-					let activeNode = this.findNode( nextField );
-					if ( activeNode === - 1 ) {
+					const node = new TTTNode( this.nextNode ++, nextField );
+					this.addNode( node );
+					activeNode = node.index;
+					const edge = new TTTEdge( preNodeIndex, activeNode, i, activePlayer );
+					this.addEdge( edge );
+					if ( ! node.isWin && count < 8 ) {
 
-						const node = new TTTNode( this.nextNode ++, nextField );
-						this.addNode( node );
-						activeNode = node.index;
-						const edge = new TTTEdge( preNodeIndex, activeNode, i, j, activePlayer );
-						this.addEdge( edge );
-						if ( ! node.isWin && count < 8 ) {
-
-							this.initRec( activeNode, this.nextPlayer( activePlayer ), count + 1 );
-
-						}
-
-					} else {
-
-						const edge = new TTTEdge( preNodeIndex, activeNode, i, j, activePlayer );
-						this.addEdge( edge );
+						this.initRec( activeNode, this.nextPlayer( activePlayer ), count + 1 );
 
 					}
+
+				} else {
+
+					const edge = new TTTEdge( preNodeIndex, activeNode, i, activePlayer );
+					this.addEdge( edge );
 
 				}
 
@@ -11856,36 +11845,33 @@ class TTTGraph extends Graph {
 	fieldToValue( field ) {
 
 		let s = "";
-		for ( let i = 0; i < 3; i ++ ) {
+		for ( let i = 0; i < 9; i ++ ) {
 
-			for ( let j = 0; j < 3; j ++ ) {
+			if ( field[ i ] !== 9 ) {
 
-				if ( field[ i ][ j ] !== 9 ) {
+				const x = field[ i ];
+				s = s + x;
 
-					const x = field[ i ][ j ];
-					s = s + x;
+			} else {
 
-				} else {
-
-					s = s + "9";
-
-				}
+				s = s + "9";
 
 			}
 
 		}
+
 		return parseInt( s, 10 );
 
 	}
 
-	turn( x, y, player ) {
+	turn( cell, player ) {
 
 		this.arrayTurn = [];
 		this.getEdgesOfNode( this.currentNode, this.arrayTurn );
 		for ( let i = 0; i < this.arrayTurn.length; i ++ ) {
 
 			const edge = this.arrayTurn[ i ];
-			if ( edge.x == x && edge.y == y && edge.player === player ) {
+			if ( edge.cell == cell && edge.player === player ) {
 
 				this.currentNode = edge.to;
 				this.currentPlayer = this.nextPlayer( player );

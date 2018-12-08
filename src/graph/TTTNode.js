@@ -6,7 +6,12 @@ import { Node } from "./core/Node";
 
 class TTTNode extends Node {
 
-	constructor( index, field = [[ 9, 9, 9 ], [ 9, 9, 9 ], [ 9, 9, 9 ]] ) {
+
+	// x	x	x 	0	1	2
+	// x	x	x	3	4	5
+	// x	x	x	6	7	8
+
+	constructor( index, field = [ 9, 9, 9, 9, 9, 9, 9, 9, 9 ] ) {
 
 		super( index );
 		this.field = field;
@@ -22,15 +27,11 @@ class TTTNode extends Node {
 
 		let count = 0;
 
-		for ( let i = 0; i < 3; i ++ ) {
+		for ( let i = 0; i < 9; i ++ ) {
 
-			for ( let j = 0; j < 3; j ++ ) {
+			if ( this.field[ i ] !== 9 ) {
 
-				if ( this.field[ i ][ j ] !== 9 ) {
-
-					count ++;
-
-				}
+				count ++;
 
 			}
 
@@ -48,20 +49,16 @@ class TTTNode extends Node {
 	setValue() {
 
 		let s = "";
-		for ( let i = 0; i < 3; i ++ ) {
+		for ( let i = 0; i < 9; i ++ ) {
 
-			for ( let j = 0; j < 3; j ++ ) {
+			if ( this.field[ i ] !== 9 ) {
 
-				if ( this.field[ i ][ j ] !== 9 ) {
+				const x = this.field[ i ];
+				s = s + x;
 
-					const x = this.field[ i ][ j ];
-					s = s + x;
+			} else {
 
-				} else {
-
-					s = s + "9";
-
-				}
+				s = s + "9";
 
 			}
 
@@ -70,19 +67,15 @@ class TTTNode extends Node {
 
 	}
 
-	getNextTurn( x, y, player ) {
+	getNextTurn( cell, player ) {
 
-		const array = [ new Array( 3 ), new Array( 3 ), new Array( 3 ) ];
-		for ( let i = 0; i < 3; i ++ ) {
+		const array = new Array( 9 );
+		for ( let i = 0; i < 9; i ++ ) {
 
-			for ( let j = 0; j < 3; j ++ ) {
-
-				array[ i ][ j ] = this.field[ i ][ j ];
-
-			}
+			array[ i ] = this.field[ i ];
 
 		}
-		array[ x ][ y ] = player;
+		array[ cell ] = player;
 		return array;
 
 	}
@@ -97,13 +90,13 @@ class TTTNode extends Node {
 
 			for ( let j = 0; j < 3; j ++ ) {
 
-				if ( this.field[ i ][ j ] === 9 ) {
+				if ( this.field[ i * 3 + j ] === 9 ) {
 
 					s = s + " ";
 
 				} else {
 
-					s = s + this.field[ i ][ j ];
+					s = s + this.field[ i * 3 + j ];
 
 				}
 
@@ -119,48 +112,49 @@ class TTTNode extends Node {
 
 	win() {
 
+
 		//horizontal
-		if ( [ this.field[ 0 ][ 0 ], this.field[ 0 ][ 1 ], this.field[ 0 ][ 2 ] ].every( condition ) ) {
+		if ( [ this.field[ 0 ], this.field[ 1 ], this.field[ 2 ] ].every( condition ) ) {
 
-			return this.field[ 0 ][ 0 ];
-
-		}
-
-		if ( [ this.field[ 1 ][ 0 ], this.field[ 1 ][ 1 ], this.field[ 1 ][ 2 ] ].every( condition ) ) {
-
-			return this.field[ 1 ][ 0 ];
+			return this.field[ 0 ];
 
 		}
-		if ( [ this.field[ 2 ][ 0 ], this.field[ 2 ][ 1 ], this.field[ 2 ][ 2 ] ].every( condition ) ) {
 
-			return this.field[ 2 ][ 0 ];
+		if ( [ this.field[ 3 ], this.field[ 4 ], this.field[ 5 ] ].every( condition ) ) {
+
+			return this.field[ 3 ];
+
+		}
+		if ( [ this.field[ 6 ], this.field[ 7 ], this.field[ 8 ] ].every( condition ) ) {
+
+			return this.field[ 6 ];
 
 		}
 		//vertical
-		if ( [ this.field[ 0 ][ 0 ], this.field[ 1 ][ 0 ], this.field[ 2 ][ 0 ] ].every( condition ) ) {
+		if ( [ this.field[ 0 ], this.field[ 3 ], this.field[ 6 ] ].every( condition ) ) {
 
-			return this.field[ 0 ][ 0 ];
-
-		}
-		if ( [ this.field[ 0 ][ 1 ], this.field[ 1 ][ 1 ], this.field[ 2 ][ 1 ] ].every( condition ) ) {
-
-			return this.field[ 0 ][ 1 ];
+			return this.field[ 0 ];
 
 		}
-		if ( [ this.field[ 0 ][ 2 ], this.field[ 1 ][ 2 ], this.field[ 2 ][ 2 ] ].every( condition ) ) {
+		if ( [ this.field[ 1 ], this.field[ 4 ], this.field[ 7 ] ].every( condition ) ) {
 
-			return this.field[ 0 ][ 2 ];
+			return this.field[ 1 ];
+
+		}
+		if ( [ this.field[ 2 ], this.field[ 5 ], this.field[ 8 ] ].every( condition ) ) {
+
+			return this.field[ 2 ];
 
 		}
 		//diagonal
-		if ( [ this.field[ 0 ][ 0 ], this.field[ 1 ][ 1 ], this.field[ 2 ][ 2 ] ].every( condition ) ) {
+		if ( [ this.field[ 0 ], this.field[ 4 ], this.field[ 8 ] ].every( condition ) ) {
 
-			return this.field[ 0 ][ 0 ];
+			return this.field[ 0 ];
 
 		}
-		if ( [ this.field[ 2 ][ 0 ], this.field[ 1 ][ 1 ], this.field[ 0 ][ 2 ] ].every( condition ) ) {
+		if ( [ this.field[ 6 ], this.field[ 4 ], this.field[ 2 ] ].every( condition ) ) {
 
-			return this.field[ 0 ][ 2 ];
+			return this.field[ 6 ];
 
 		}
 

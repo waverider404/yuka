@@ -42,33 +42,29 @@ class TTTGraph extends Graph {
 
 		const preNode = this.getNode( preNodeIndex );
 
-		for ( let i = 0; i < 3; i ++ ) {
+		for ( let i = 0; i < 9; i ++ ) {
 
-			for ( let j = 0; j < 3; j ++ ) {
+			if ( preNode.field[ i ] === 9 ) {
 
-				if ( preNode.field[ i ][ j ] === 9 ) {
+				const nextField = preNode.getNextTurn( i, activePlayer );
+				let activeNode = this.findNode( nextField );
+				if ( activeNode === - 1 ) {
 
-					const nextField = preNode.getNextTurn( i, j, activePlayer );
-					let activeNode = this.findNode( nextField );
-					if ( activeNode === - 1 ) {
+					const node = new TTTNode( this.nextNode ++, nextField );
+					this.addNode( node );
+					activeNode = node.index;
+					const edge = new TTTEdge( preNodeIndex, activeNode, i, activePlayer );
+					this.addEdge( edge );
+					if ( ! node.isWin && count < 8 ) {
 
-						const node = new TTTNode( this.nextNode ++, nextField );
-						this.addNode( node );
-						activeNode = node.index;
-						const edge = new TTTEdge( preNodeIndex, activeNode, i, j, activePlayer );
-						this.addEdge( edge );
-						if ( ! node.isWin && count < 8 ) {
-
-							this.initRec( activeNode, this.nextPlayer( activePlayer ), count + 1 );
-
-						}
-
-					} else {
-
-						const edge = new TTTEdge( preNodeIndex, activeNode, i, j, activePlayer );
-						this.addEdge( edge );
+						this.initRec( activeNode, this.nextPlayer( activePlayer ), count + 1 );
 
 					}
+
+				} else {
+
+					const edge = new TTTEdge( preNodeIndex, activeNode, i, activePlayer );
+					this.addEdge( edge );
 
 				}
 
@@ -103,36 +99,33 @@ class TTTGraph extends Graph {
 	fieldToValue( field ) {
 
 		let s = "";
-		for ( let i = 0; i < 3; i ++ ) {
+		for ( let i = 0; i < 9; i ++ ) {
 
-			for ( let j = 0; j < 3; j ++ ) {
+			if ( field[ i ] !== 9 ) {
 
-				if ( field[ i ][ j ] !== 9 ) {
+				const x = field[ i ];
+				s = s + x;
 
-					const x = field[ i ][ j ];
-					s = s + x;
+			} else {
 
-				} else {
-
-					s = s + "9";
-
-				}
+				s = s + "9";
 
 			}
 
 		}
+
 		return parseInt( s, 10 );
 
 	}
 
-	turn( x, y, player ) {
+	turn( cell, player ) {
 
 		this.arrayTurn = [];
 		this.getEdgesOfNode( this.currentNode, this.arrayTurn );
 		for ( let i = 0; i < this.arrayTurn.length; i ++ ) {
 
 			const edge = this.arrayTurn[ i ];
-			if ( edge.x == x && edge.y == y && edge.player === player ) {
+			if ( edge.cell == cell && edge.player === player ) {
 
 				this.currentNode = edge.to;
 				this.currentPlayer = this.nextPlayer( player );
