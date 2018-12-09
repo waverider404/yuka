@@ -11582,8 +11582,8 @@
 			this.field = field;
 			//9 empty, 1 player 1, 2 player 2
 			this.filled = this.countFilledFields();
-			this.value = 999999999;
-			this.winPlayer = this.win();
+			this.value = 999999999;// number representation of the field for faster comparision
+			this.winPlayer = this.win(); //which player wins with this node if there is none -1
 			this.isWin = ( this.winPlayer !== - 1 );
 
 		}
@@ -11677,7 +11677,7 @@
 
 		win() {
 
-
+			//all win conditions
 			//horizontal
 			if ( [ this.field[ 0 ], this.field[ 1 ], this.field[ 2 ] ].every( condition ) ) {
 
@@ -11763,13 +11763,16 @@
 		constructor() {
 
 			super();
-			this.lookUp = new Map();
+			this.digraph = true;
+
+			this.lookUp = new Map(); //store node value and node id for fast lookup
 			this.currentNode = - 1;
 			this.nextNode = 0;
-			this.digraph = true;
-			this.nodesFind = [];
+
 			this.arrayTurn = [];
 			this.currentPlayer = 1;
+
+
 			this.init( 1 );
 
 		}

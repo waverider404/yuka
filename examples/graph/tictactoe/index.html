@@ -77,13 +77,22 @@
 			const nextNode = graph.getNode( graph.currentNode );
 			if ( nextNode.isWin ) {
 
+			//check for win
             	fin = true;
             	console.log( "Win Player: " + nextNode.winPlayer );
 				nextNode.print();
 	
 			}
+			if ( nextNode.countEmptyFields() === 0 ) {
 
-	}
+			    //check for draw
+				fin = true;
+				console.log( "It's a draw" );
+				nextNode.print();
+	
+			}
+
+		}
 
 
 

@@ -11,13 +11,16 @@ class TTTGraph extends Graph {
 	constructor() {
 
 		super();
-		this.lookUp = new Map();
+		this.digraph = true;
+
+		this.lookUp = new Map(); //store node value and node id for fast lookup
 		this.currentNode = - 1;
 		this.nextNode = 0;
-		this.digraph = true;
-		this.nodesFind = [];
+
 		this.arrayTurn = [];
 		this.currentPlayer = 1;
+
+
 		this.init( 1 );
 
 	}
