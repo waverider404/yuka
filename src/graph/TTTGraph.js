@@ -5,10 +5,11 @@
 import { Graph } from "./core/Graph";
 import { TTTNode } from "./TTTNode";
 import { TTTEdge } from "./TTTEdge";
+import { DFSExtended } from "./search/DFSExtended";
 
 class TTTGraph extends Graph {
 
-	constructor() {
+	constructor( humanPlayer = 1 ) {
 
 		super();
 		this.digraph = true;
@@ -19,17 +20,19 @@ class TTTGraph extends Graph {
 
 		this.arrayTurn = [];
 		this.currentPlayer = 1;
+		this.kiIsSimple = true;
+		this.kiPlayer = this.nextPlayer( humanPlayernpm  );
 
 
-		this.init( 1 );
+		this.init( );
 
 	}
 
-	init( firstPlayer ) {
+	init( ) {
 
 		const node = new TTTNode( this.nextNode ++ );
 		this.addNode( node );
-		this.initRec( node.index, firstPlayer, 0 );
+		this.initRec( node.index, this.currentPlayer, 0 );
 		this.currentNode = node.index;
 
 	}
@@ -74,6 +77,73 @@ class TTTGraph extends Graph {
 			}
 
 		}
+
+	}
+
+	kiTurn() {
+
+		if ( this.kiIsSimple ) {
+
+			const nodeIndex = this.dfs();
+
+			if ( nodeIndex !== - 1 ) {
+
+				const edge = this.getEdge( this.currentNode, nodeIndex );
+				const cell = edge.cell;
+				this.turn( cell, this.kiPlayer );
+
+			} else {
+
+				//pick random
+				this.turn( this.kiPickRandom(), this.kiPlayer );
+
+			}
+
+		} else {
+			//something else count wins per path and use best
+		}
+
+	}
+
+	kiPickRandom() {
+
+		const node = this.getNode( this.currentNode );
+		for ( let i = 0; i < 9; i ++ ) {
+
+			if ( node.field[ i ] === 9 ) {
+
+				return i;
+
+			}
+
+		}
+
+	}
+
+	dfs() {
+
+		const dfseWin = new DFSExtended( this, this.currentNode, targetConditionWin.bind( this ) );
+		dfseWin.search();
+		if ( dfseWin.found ) {
+
+			const path = dfseWin.getPath();
+			return path[ 1 ];
+
+		} else {
+
+			const dfseDraw = new DFSExtended( this, this.currentNode, targetConditionDraw.bind( this ) );
+			dfseDraw.search();
+			if ( dfseDraw.found ) {
+
+				const path2 = dfseDraw.getPath();
+				return path2[ 1 ];
+
+			}
+
+			return - 1;
+
+		}
+
 
 	}
 
@@ -141,4 +211,16 @@ class TTTGraph extends Graph {
 	}
 
 }
+function targetConditionWin( node ) {
+
+	return node.isWin && node.winPlayer === this.kiPlayer;
+
+}
+
+function targetConditionDraw( node ) {
+
+	return ! node.isWin && node.filled === 9;
+
+}
+
 export { TTTGraph };

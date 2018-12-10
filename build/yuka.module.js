@@ -11751,10 +11751,112 @@ class TTTEdge extends Edge {
 /**
  * @author robp94 / https://github.com/robp94
  */
+class DFSExtended extends DFS {
+
+	constructor( graph, source, targetCondition ) {
+
+		super( graph, source );
+		this.targetCondition = targetCondition;//Function: node -> boolean
+
+	}
+
+	/**
+	 * Executes the graph search. If the search was successful, {@link DFS#found}
+	 * is set to true.
+	 *
+	 * @return {DFSExtended} A reference to this DFSExtended object.
+	 */
+	search() {
+
+		// create a stack(LIFO) of edges, done via an array
+
+		const stack = new Array();
+		const outgoingEdges = new Array();
+
+		// create a dummy edge and put on the stack to begin the search
+
+		const startEdge = new Edge( this.source, this.source );
+
+		stack.push( startEdge );
+
+		// while there are edges in the stack keep searching
+
+		while ( stack.length > 0 ) {
+
+			// grab the next edge and remove it from the stack
+
+			const nextEdge = stack.pop();
+
+			// make a note of the parent of the node this edge points to
+
+			this._route.set( nextEdge.to, nextEdge.from );
+
+			// and mark it visited
+
+			this._visited.add( nextEdge.to );
+
+			// expand spanning tree
+
+			if ( nextEdge !== startEdge ) {
+
+				this._spanningTree.add( nextEdge );
+
+			}
+
+			// if the target has been found the method can return success
+
+			if ( this.checkCondition( nextEdge.to ) ) {
+
+				this.found = true;
+				this.target = nextEdge.to;
+
+				return this;
+
+			}
+
+			// determine outgoing edges
+
+			this.graph.getEdgesOfNode( nextEdge.to, outgoingEdges );
+
+			// push the edges leading from the node this edge points to onto the
+			// stack (provided the edge does not point to a previously visited node)
+
+			for ( let i = 0, l = outgoingEdges.length; i < l; i ++ ) {
+
+				const edge = outgoingEdges[ i ];
+
+				if ( this._visited.has( edge.to ) === false ) {
+
+					stack.push( edge );
+
+				}
+
+			}
+
+		}
+
+		this.found = false;
+
+		return this;
+
+	}
+
+	checkCondition( nodeIndex ) {
+
+		const node = this.graph.getNode( nodeIndex );
+		return this.targetCondition( node );
+
+	}
+
+}
+
+/**
+ * @author robp94 / https://github.com/robp94
+ */
 
 class TTTGraph extends Graph {
 
-	constructor() {
+	constructor( humanPlayer = 1 ) {
 
 		super();
 		this.digraph = true;
@@ -11765,17 +11867,19 @@ class TTTGraph extends Graph {
 
 		this.arrayTurn = [];
 		this.currentPlayer = 1;
+		this.kiIsSimple = true;
+		this.kiPlayer = this.nextPlayer( humanPlayernpm  );
 
 
-		this.init( 1 );
+		this.init( );
 
 	}
 
-	init( firstPlayer ) {
+	init( ) {
 
 		const node = new TTTNode( this.nextNode ++ );
 		this.addNode( node );
-		this.initRec( node.index, firstPlayer, 0 );
+		this.initRec( node.index, this.currentPlayer, 0 );
 		this.currentNode = node.index;
 
 	}
@@ -11820,6 +11924,71 @@ class TTTGraph extends Graph {
 			}
 
 		}
+
+	}
+
+	kiTurn() {
+
+		if ( this.kiIsSimple ) {
+
+			const nodeIndex = this.dfs();
+
+			if ( nodeIndex !== - 1 ) {
+
+				const edge = this.getEdge( this.currentNode, nodeIndex );
+				const cell = edge.cell;
+				this.turn( cell, this.kiPlayer );
+
+			} else {
+
+				//pick random
+				this.turn( this.kiPickRandom(), this.kiPlayer );
+
+			}
+
+		}
+
+	}
+
+	kiPickRandom() {
+
+		const node = this.getNode( this.currentNode );
+		for ( let i = 0; i < 9; i ++ ) {
+
+			if ( node.field[ i ] === 9 ) {
+
+				return i;
+
+			}
+
+		}
+
+	}
+
+	dfs() {
+
+		const dfseWin = new DFSExtended( this, this.currentNode, targetConditionWin.bind( this ) );
+		dfseWin.search();
+		if ( dfseWin.found ) {
+
+			const path = dfseWin.getPath();
+			return path[ 1 ];
+
+		} else {
+
+			const dfseDraw = new DFSExtended( this, this.currentNode, targetConditionDraw.bind( this ) );
+			dfseDraw.search();
+			if ( dfseDraw.found ) {
+
+				const path2 = dfseDraw.getPath();
+				return path2[ 1 ];
+
+			}
+
+			return - 1;
+
+		}
+
 
 	}
 
@@ -11887,5 +12056,16 @@ class TTTGraph extends Graph {
 	}
 
 }
+function targetConditionWin( node ) {
 
-export { EntityManager, EventDispatcher, GameEntity, Logger, MeshGeometry, MessageDispatcher, MovingEntity, Regulator, Time, Telegram, State, StateMachine, CompositeGoal, Goal, GoalEvaluator, Think, Edge, Graph, Node, PriorityQueue, AStar, BFS, DFS, Dijkstra, AABB, BoundingSphere, LineSegment, MathUtils, Matrix3, Matrix4, Plane, Quaternion, Ray, Vector3, NavEdge, NavNode, GraphUtils, Corridor, HalfEdge, NavMesh, NavMeshLoader, Polygon, Cell, CellSpacePartitioning, MemoryRecord, MemorySystem, Obstacle, Vision, Path, Smoother, SteeringBehavior, SteeringManager, Vehicle, AlignmentBehavior, ArriveBehavior, CohesionBehavior, EvadeBehavior, FleeBehavior, FollowPathBehavior, InterposeBehavior, ObstacleAvoidanceBehavior, PursuitBehavior, SeekBehavior, SeparationBehavior, WanderBehavior, Task, TaskQueue, RectangularTriggerRegion, SphericalTriggerRegion, TriggerRegion, Trigger, TTTNode, TTTEdge, TTTGraph, HeuristicPolicyEuclid, HeuristicPolicyEuclidSquared, HeuristicPolicyManhatten, HeuristicPolicyDijkstra, WorldUp };
+	return node.isWin && node.winPlayer === this.kiPlayer;
+
+}
+
+function targetConditionDraw( node ) {
+
+	return ! node.isWin && node.filled === 9;
+
+}
+
+export { EntityManager, EventDispatcher, GameEntity, Logger, MeshGeometry, MessageDispatcher, MovingEntity, Regulator, Time, Telegram, State, StateMachine, CompositeGoal, Goal, GoalEvaluator, Think, Edge, Graph, Node, PriorityQueue, AStar, BFS, DFS, Dijkstra, AABB, BoundingSphere, LineSegment, MathUtils, Matrix3, Matrix4, Plane, Quaternion, Ray, Vector3, NavEdge, NavNode, GraphUtils, Corridor, HalfEdge, NavMesh, NavMeshLoader, Polygon, Cell, CellSpacePartitioning, MemoryRecord, MemorySystem, Obstacle, Vision, Path, Smoother, SteeringBehavior, SteeringManager, Vehicle, AlignmentBehavior, ArriveBehavior, CohesionBehavior, EvadeBehavior, FleeBehavior, FollowPathBehavior, InterposeBehavior, ObstacleAvoidanceBehavior, PursuitBehavior, SeekBehavior, SeparationBehavior, WanderBehavior, Task, TaskQueue, RectangularTriggerRegion, SphericalTriggerRegion, TriggerRegion, Trigger, TTTNode, TTTEdge, TTTGraph, DFSExtended, HeuristicPolicyEuclid, HeuristicPolicyEuclidSquared, HeuristicPolicyManhatten, HeuristicPolicyDijkstra, WorldUp };

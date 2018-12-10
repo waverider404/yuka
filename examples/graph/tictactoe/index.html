@@ -60,20 +60,31 @@
 
 	function init() {
 
-		const graph = new YUKA.TTTGraph();
-		console.log( graph._nodes.size );
+
+
+		const player = parseInt( prompt( "Please enter player number" ) );
+		const graph = new YUKA.TTTGraph(player);
 
 		let fin = false;
 
 		while ( ! fin ) {
 
 			graph.getNode( graph.currentNode ).print();
-			const input = prompt( "Please Enter x and y coordinate for Player:" + graph.currentPlayer );
+			if ( graph.currentPlayer == player ) {
 
-			console.log( input );
+				const input = prompt( "Please cell for Player:" + graph.currentPlayer );
+
+				console.log( input );
 
 
-			graph.turn( input, graph.currentPlayer );
+				graph.turn( input, graph.currentPlayer );
+	
+			} else {
+
+				graph.kiTurn();
+	
+			}
+
 			const nextNode = graph.getNode( graph.currentNode );
 			if ( nextNode.isWin ) {
 
