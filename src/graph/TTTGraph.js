@@ -21,7 +21,7 @@ class TTTGraph extends Graph {
 		this.arrayTurn = [];
 		this.currentPlayer = 1;
 		this.kiIsSimple = true;
-		this.kiPlayer = this.nextPlayer( humanPlayernpm  );
+		this.kiPlayer = this.nextPlayer( humanPlayer );
 
 
 		this.init( );
@@ -71,6 +71,7 @@ class TTTGraph extends Graph {
 
 					const edge = new TTTEdge( preNodeIndex, activeNode, i, activePlayer );
 					this.addEdge( edge );
+					this.getNode( activeNode ).weight ++;
 
 				}
 
@@ -101,6 +102,9 @@ class TTTGraph extends Graph {
 
 		} else {
 			//something else count wins per path and use best
+
+			//make sure don't lose next turn if possible ?lookup more than one turn?
+			//find node with highest win rate oder draw rate
 		}
 
 	}

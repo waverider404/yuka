@@ -20,6 +20,7 @@ class TTTNode extends Node {
 		this.value = 999999999;// number representation of the field for faster comparision
 		this.winPlayer = this.win(); //which player wins with this node if there is none -1
 		this.isWin = ( this.winPlayer !== - 1 );
+		this.weight = 1;
 
 	}
 
