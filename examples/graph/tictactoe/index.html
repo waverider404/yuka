@@ -1,112 +1,119 @@
 <html lang="en">
 <head>
-    <title>Yuka | State-driven Agent Design</title>
+    <title>Yuka | Tic-Tac-Toe</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <link rel="stylesheet" type="text/css" href="../../lib/styles.css">
-    <style>
-        #status {
-            position: absolute;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 28px;
-            color: #ffffff;
-            text-align: center;
-            line-height: 20px;
-            width: 100%;
-            bottom: 0;
-        }
-        #status>div {
-            background-color: #282828;
-            width: 250px;
-            padding: 16px;
-        }
-        #status>div>span {
-            display: inline-block;
-        }
-    </style>
 </head>
 <body>
 
-
-
-<section id="info">
-    <p>
-        The game entity continuously changes its status between "IDLE" and "WALK".<br/>
-        The State-driven agent design enables a clean implementation of basic AI logic.
-    </p>
+<section>
+    <input id="cell">
+    <button id="submit">Submit</button>
 </section>
 
-<section id="status">
-    <div>
-        <span>Current State:</span>
-        <span id="currentState"></span>
-    </div>
+<section id="boards">
+
 </section>
 
 <script type="module">
 
-	import * as YUKA from '../../../build/yuka.module.js';
-	import * as THREE from '../../lib/three.module.js';
+	import { TTTGraph } from './src/TTTGraph.js';
 
+	const boardsUI = document.getElementById( 'boards' );
+	const submitButton = document.getElementById( 'submit' );
+	const cellInput = document.getElementById( 'cell' );
 
+	let player, graph, fin = false;
 
-
-	let camera, scene, renderer, target = new THREE.Vector3();
-
-	let entityManager, time;
 	init();
 
 	function init() {
 
+	    player = parseInt( 1 );
+    	graph = new TTTGraph( player );
 
+		if ( player === 2 ) graph.aiTurn();
 
-		const player = parseInt( prompt( "Please enter player number" ) );
-		const graph = new YUKA.TTTGraph(player);
+		print( graph.getNode( graph.currentNode ) );
 
-		let fin = false;
+		submitButton.addEventListener( 'click', function onClick() {
 
-		while ( ! fin ) {
+			const cell = cellInput.value;
+			cellInput.value = '';
 
-			graph.getNode( graph.currentNode ).print();
-			if ( graph.currentPlayer == player ) {
+			graph.turn( cell, graph.currentPlayer );
+			evaluate();
 
-				const input = prompt( "Please cell for Player:" + graph.currentPlayer );
+			if ( fin === false ) {
 
-				console.log( input );
+				graph.aiTurn();
+				evaluate();
 
-
-				graph.turn( input, graph.currentPlayer );
-	
-			} else {
-
-				graph.kiTurn();
-	
 			}
 
-			const nextNode = graph.getNode( graph.currentNode );
-			if ( nextNode.isWin ) {
+			if ( fin === true ) {
+
+                submitButton.removeEventListener( 'click', onClick );
+
+            }
+
+	} );
+
+	}
+
+	function evaluate() {
+
+		const nextNode = graph.getNode( graph.currentNode );
+
+		if ( nextNode.isWin ) {
 
 			//check for win
-            	fin = true;
-            	console.log( "Win Player: " + nextNode.winPlayer );
-				nextNode.print();
-	
-			}
-			if ( nextNode.countEmptyFields() === 0 ) {
-
-			    //check for draw
-				fin = true;
-				console.log( "It's a draw" );
-				nextNode.print();
-	
-			}
+			fin = true;
+			alert( "Win Player: " + nextNode.winPlayer );
 
 		}
 
+		if ( nextNode.filled === 9 ) {
 
+			//check for draw
+			fin = true;
+			alert( "It's a draw" );
 
+		}
+
+		print( nextNode );
+
+}
+
+	function print( node ) {
+
+		const field = node.field;
+
+		let s = "";
+
+		for ( let i = 0; i < 3; i ++ ) {
+
+			s = s + '[';
+
+			for ( let j = 0; j < 3; j ++ ) {
+
+				if ( field[ i * 3 + j ] === 9 ) {
+
+					s = s + "_";
+
+				} else {
+
+					s = s + field[ i * 3 + j ];
+
+				}
+
+			}
+			s = s + ']\n';
+
+		}
+
+		boardsUI.innerText = s;
 
 	}
 

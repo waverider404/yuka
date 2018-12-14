@@ -2,10 +2,12 @@
  * @author robp94 / https://github.com/robp94
  */
 
-import { Graph } from "./core/Graph";
-import { TTTNode } from "./TTTNode";
-import { TTTEdge } from "./TTTEdge";
-import { DFSExtended } from "./search/DFSExtended";
+import { Graph } from '../../../../build/yuka.module.js';
+import { TTTNode } from './TTTNode.js';
+import { TTTEdge } from './TTTEdge.js';
+import { DFSExtended } from './DFSExtended.js';
+
+const arrayTurn = [];
 
 class TTTGraph extends Graph {
 
@@ -18,11 +20,9 @@ class TTTGraph extends Graph {
 		this.currentNode = - 1;
 		this.nextNode = 0;
 
-		this.arrayTurn = [];
 		this.currentPlayer = 1;
-		this.kiIsSimple = true;
-		this.kiPlayer = this.nextPlayer( humanPlayer );
-
+		this.aiIsSimple = true;
+		this.aiPlayer = this.nextPlayer( humanPlayer );
 
 		this.init( );
 
@@ -32,7 +32,7 @@ class TTTGraph extends Graph {
 
 		const node = new TTTNode( this.nextNode ++ );
 		this.addNode( node );
-		this.initRec( node.index, this.currentPlayer, 0 );
+		this.generate( node.index, this.currentPlayer, 0 );
 		this.currentNode = node.index;
 
 	}
@@ -44,7 +44,7 @@ class TTTGraph extends Graph {
 
 	}
 
-	initRec( preNodeIndex, activePlayer, count ) {
+	generate( preNodeIndex, activePlayer, count ) {
 
 		const preNode = this.getNode( preNodeIndex );
 
@@ -61,9 +61,9 @@ class TTTGraph extends Graph {
 					activeNode = node.index;
 					const edge = new TTTEdge( preNodeIndex, activeNode, i, activePlayer );
 					this.addEdge( edge );
-					if ( ! node.isWin && count < 8 ) {
+					if ( ! node.isWin && count < 8 ) { // TODO: Use logic of TTTNode
 
-						this.initRec( activeNode, this.nextPlayer( activePlayer ), count + 1 );
+						this.generate( activeNode, this.nextPlayer( activePlayer ), count + 1 );
 
 					}
 
@@ -81,9 +81,9 @@ class TTTGraph extends Graph {
 
 	}
 
-	kiTurn() {
+	aiTurn() {
 
-		if ( this.kiIsSimple ) {
+		if ( this.aiIsSimple ) {
 
 			const nodeIndex = this.dfs();
 
@@ -91,12 +91,12 @@ class TTTGraph extends Graph {
 
 				const edge = this.getEdge( this.currentNode, nodeIndex );
 				const cell = edge.cell;
-				this.turn( cell, this.kiPlayer );
+				this.turn( cell, this.aiPlayer );
 
 			} else {
 
 				//pick random
-				this.turn( this.kiPickRandom(), this.kiPlayer );
+				this.turn( this.pickFirstEmptyCell(), this.aiPlayer );
 
 			}
 
@@ -109,7 +109,7 @@ class TTTGraph extends Graph {
 
 	}
 
-	kiPickRandom() {
+	pickFirstEmptyCell() {
 
 		const node = this.getNode( this.currentNode );
 		for ( let i = 0; i < 9; i ++ ) {
@@ -175,33 +175,20 @@ class TTTGraph extends Graph {
 
 	fieldToValue( field ) {
 
-		let s = "";
-		for ( let i = 0; i < 9; i ++ ) {
+		// TODO: Use logic from TTTNode
 
-			if ( field[ i ] !== 9 ) {
-
-				const x = field[ i ];
-				s = s + x;
-
-			} else {
-
-				s = s + "9";
-
-			}
-
-		}
-
+		let s = field.join( '' );
 		return parseInt( s, 10 );
 
 	}
 
 	turn( cell, player ) {
 
-		this.arrayTurn = [];
-		this.getEdgesOfNode( this.currentNode, this.arrayTurn );
-		for ( let i = 0; i < this.arrayTurn.length; i ++ ) {
+		arrayTurn.length = 0;
+		this.getEdgesOfNode( this.currentNode, arrayTurn );
+		for ( let i = 0, l = arrayTurn.length; i < l; i ++ ) {
 
-			const edge = this.arrayTurn[ i ];
+			const edge = arrayTurn[ i ];
 			if ( edge.cell == cell && edge.player === player ) {
 
 				this.currentNode = edge.to;
@@ -217,7 +204,7 @@ class TTTGraph extends Graph {
 }
 function targetConditionWin( node ) {
 
-	return node.isWin && node.winPlayer === this.kiPlayer;
+	return node.isWin && node.winPlayer === this.aiPlayer;
 
 }
 

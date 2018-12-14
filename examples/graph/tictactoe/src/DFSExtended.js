@@ -1,5 +1,4 @@
-import { Edge } from "../core/Edge";
-import { DFS } from "./DFS";
+import { Edge, DFS } from '../../../../build/yuka.module.js';
 
 /**
  * @author robp94 / https://github.com/robp94

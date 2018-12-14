@@ -2,7 +2,7 @@
  * @author robp94 / https://github.com/robp94
  */
 
-import { Node } from "./core/Node";
+import { Node } from '../../../../build/yuka.module.js';
 
 class TTTNode extends Node {
 
@@ -20,11 +20,12 @@ class TTTNode extends Node {
 		this.value = 999999999;// number representation of the field for faster comparision
 		this.winPlayer = this.win(); //which player wins with this node if there is none -1
 		this.isWin = ( this.winPlayer !== - 1 );
+
 		this.weight = 1;
 
 	}
 
-	countFilledFields() {
+	countFilledFields() {// refactor to bool if there are still moves possible
 
 		let count = 0;
 
@@ -41,29 +42,9 @@ class TTTNode extends Node {
 
 	}
 
-	countEmptyFields() {
-
-		return 9 - this.countFilledFields();
-
-	}
-
 	setValue() {
 
-		let s = "";
-		for ( let i = 0; i < 9; i ++ ) {
-
-			if ( this.field[ i ] !== 9 ) {
-
-				const x = this.field[ i ];
-				s = s + x;
-
-			} else {
-
-				s = s + "9";
-
-			}
-
-		}
+		let s = this.field.join( "" );
 		this.value = parseInt( s, 10 );
 
 	}
@@ -80,36 +61,6 @@ class TTTNode extends Node {
 		return array;
 
 	}
-
-	print() {
-
-		let s = "";
-
-		for ( let i = 0; i < 3; i ++ ) {
-
-			s = s + '[';
-
-			for ( let j = 0; j < 3; j ++ ) {
-
-				if ( this.field[ i * 3 + j ] === 9 ) {
-
-					s = s + " ";
-
-				} else {
-
-					s = s + this.field[ i * 3 + j ];
-
-				}
-
-			}
-			s = s + ']\n';
-
-		}
-		console.log( s );
-
-	}
-
-
 
 	win() {
 
