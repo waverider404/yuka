@@ -25,7 +25,9 @@ class TTTNode extends Node {
 
 	}
 
-	countFilledFields() {// refactor to bool if there are still moves possible
+	countFilledFields() {
+
+		// refactor to bool if there are still moves possible
 
 		let count = 0;
 
