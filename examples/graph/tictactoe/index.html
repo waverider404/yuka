@@ -25,6 +25,7 @@
 				color: #ffffff;
 				text-align: center;
 				font-size: 150px;
+				cursor: pointer;
 			}
 			button {
 				height: 20px;
@@ -35,26 +36,35 @@
 				border: 0px;
 				cursor: pointer;
 			}
-			#restart {
-				display: none;
+			#intro div {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				justify-content: center;
 			}
 		</style>
 </head>
 <body>
 
 	<section id="intro">
-		<p>
-			Welcome to "Tic-Tac-Toe"
-		</p>
-		<p class="sub">
-			Do you want to make the first move?
-		</p>
-		<p>
-			<button type="button" data-player="1">Yes please!</button> <button type="button" data-player="2">Let the AI begin!</button>
-		</p>
-		<p>
-			<a id="restart" href="#">Restart Game</a>
-		</p>
+		<div id="startSection">
+			<p>
+				Welcome to "Tic-Tac-Toe"
+			</p>
+			<p class="sub">
+				Do you want to make the first move?
+			</p>
+			<p>
+				<button type="button" data-player="1">Yes please!</button> <button type="button" data-player="2">Let the AI begin!</button>
+			</p>
+		</div>
+		<div id="endSection" style="display: none;">
+			<p id="result">
+			</p>
+			<p>
+				<button type="button">Restart Game</button>
+			</p>
+		</div>
 	</section>
 
 	<section id="container">
@@ -89,13 +99,17 @@
 
 		// init buttons
 
-		const buttons = document.querySelectorAll( 'button' );
+		const buttons = document.querySelectorAll( '#startSection button' );
 
 		for ( let button of buttons ) {
 
 			button.addEventListener( 'click', onButtonClick );
 
 		}
+
+		const button = document.querySelector( '#endSection button' );
+
+		button.addEventListener( 'click', onRestart );
 
 		// init cells
 
@@ -135,6 +149,12 @@
 		player = parseInt( button.dataset.player );
 
 		initGame();
+
+	}
+
+	function onRestart() {
+
+		window.location.reload();
 
 	}
 
@@ -206,23 +226,29 @@
 			const intro = document.getElementById( 'intro' );
 			intro.classList.remove( 'hidden' );
 
-			intro.innerHTML = '';
+			const startSection = document.getElementById( 'startSection' );
+			startSection.style.display = 'none';
+
+			const endSection = document.getElementById( 'endSection' );
+			endSection.style.display = 'flex';
+
+			const result = document.getElementById( 'result' );
 
 			if ( node.isWin === true ) {
 
 				if ( node.winPlayer === player ) {
 
-					intro.textContent = 'You win the game!';
+					result.textContent = 'You win the game!';
 
 				} else {
 
-					intro.textContent = 'The AI wins the game!';
+					result.textContent = 'The AI wins the game!';
 
 				}
 
 			} else {
 
-				intro.textContent = 'Draw!';
+				result.textContent = 'Draw!';
 
 			}
 
