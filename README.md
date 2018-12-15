@@ -1,7 +1,31 @@
-Yuka
-========
+# Yuka &middot; [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Mugen87/yuka/blob/master/LICENSE) [![Build Status](https://travis-ci.org/Mugen87/yuka.svg?branch=master)](https://travis-ci.org/Mugen87/yuka) [![Coverage Status](https://coveralls.io/repos/github/Mugen87/yuka/badge.svg?branch=master)](https://coveralls.io/github/Mugen87/yuka?branch=master)
 
-[![Build Status](https://travis-ci.org/Mugen87/yuka.svg?branch=master)](https://travis-ci.org/Mugen87/yuka)
-[![Coverage Status](https://coveralls.io/repos/github/Mugen87/yuka/badge.svg?branch=master)](https://coveralls.io/github/Mugen87/yuka?branch=master)
+Yuka is a JavaScript library for developing Game AI.
 
-#### JavaScript Game AI library ####
+* **Autonomous Agent Design:** Yuka provides a basic game entity concept and classes for state-driven and goal-driven agent design.
+* **Steering:** Use the build-in vehicle model and steering behaviors in order to develop moving game entities.
+* **Navigation:** Graph classes, search algorithms and a navigation mesh implementation enables advanced path finding.
+* **Perception:** Create game entities with a short-term memory and a vision component.
+* **Trigger:** Use triggers to generate dynamic actions in your game.
+
+Yuka is a standalone library and independent of a particular 3D engine.
+
+## Documentation
+
+You can find the Yuka documentation [on the website](https://mugen87.github.io/yuka/docs/).
+
+## Examples
+
+We have several examples [on the website](https://mugen87.github.io/yuka/examples/). If you donwload the repository and execute `npm install && npm start` in the main directory, you can start a local server and check out the examples on your computer.
+
+## Resources
+
+We recommend the following books in order to get familiar with most of Yuka's concepts:
+
+[Programming Game AI by Example](https://www.amazon.com/Programming-Example-Wordware-Developers-Library/dp/1556220782) by Mat Buckland
+
+[3D Math Primer for Graphics and Game Development](https://www.amazon.com/Math-Primer-Graphics-Game-Development/dp/1568817231/) by Fletcher Dunn and Ian Parberry
+
+### License
+
+Yuka is [MIT licensed](./LICENSE).
